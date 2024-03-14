@@ -1,0 +1,5 @@
+12 , Alpin , 23 , Popescu Razvan , 647.4
+8, RedHotel , 32 , Adina Pestritu , 862.2
+23 , Qandahar , 54 , Roxana Vancea , 191.7
+28 , Edma , 145 , Ciolos Ovidiu , 908.6
+6 , Marriot , 97 , Popescu Razvan , 548.3
