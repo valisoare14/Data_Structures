@@ -1,0 +1,5 @@
+7 ,Reabilitare,ROMAC, 120 , 13456.87
+3 ,Consolidare,ROMAC, 56 , 23980.45
+5 ,Defrisare,FEC, 231 , 21458.09
+1 ,Betonare,GUH, 459 , 37690.53
+9 ,Marcare,ASAD, 234 , 45876.66
