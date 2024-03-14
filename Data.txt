@@ -1,0 +1,10 @@
+Cargus,Giurgiu,21,12897.05,12
+Fancurier,Ploiesti,34,65897.56,10
+Pacopan,Pitesti,54,43286.67,16
+Vajiala,Buzau,60,89075.80,19
+Ulise,Oradea,35,13257.89,24
+Budon,Bacau,20,90834.87,30
+Arena,Timisoara,15,78676.99,28
+Mousepad,Constanta,71,90926.67,8
+Cuttie,Braila,32,61309.82,2
+Table,Galati,9,75834.09,5
