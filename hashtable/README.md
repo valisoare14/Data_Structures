@@ -14,7 +14,7 @@ The provided C code defines **structures and functions** for manipulating a **ha
 
 3. **Extending Warranties:**
    - The **hash table is traversed**.
-   - For each **electronic warranty** (where the field `esteElectronica` is **true/1**), the **warranty duration** is extended by a specified value (**7 months** in this case).
+   - For each **electronic warranty** (where the field `isElectronic` is **true/1**), the **warranty duration** is extended by a specified value (**7 months** in this case).
 
 4. **Modifying the Service for a Warranty:**
    - The **service name** for a specific warranty is changed.
