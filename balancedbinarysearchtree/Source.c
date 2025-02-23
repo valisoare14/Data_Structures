@@ -1,52 +1,51 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
-#include<malloc.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <malloc.h>
 
-struct Depozit
+struct Deposit
 {
-	char* denumire;
-	char* locatie;
-	int nrAngajati;
-	float salarii;
-	int vechime;
+	char* name;
+	char* location;
+	int numEmployees;
+	float salaries;
+	int seniority;
 };
-typedef struct Depozit DepozitInfo;
+typedef struct Deposit DepositInfo;
 
 struct BinarySearchTree
 {
 	struct BinarySearchTree* left;
 	struct BinarySearchTree* right;
-	DepozitInfo* info;
+	DepositInfo* info;
 	int bFactor;
 };
 typedef struct BinarySearchTree BinarySearchTree;
 
 //memory
-DepozitInfo* createDepozit(char* , char* , int , float , int );
-BinarySearchTree* createNode(DepozitInfo*);
-void insertNode(BinarySearchTree**, DepozitInfo*);
+DepositInfo* createDeposit(char*, char*, int, float, int);
+BinarySearchTree* createNode(DepositInfo*);
+void insertNode(BinarySearchTree**, DepositInfo*);
 void rebalance(BinarySearchTree**);
 int getHeight(BinarySearchTree*);
 void leftRotation(BinarySearchTree**);
 void rightRotation(BinarySearchTree**);
-void inordine(BinarySearchTree*);
-void displayDepozit(DepozitInfo*);
-DepozitInfo** vectorOfDepositsOnSpecifiedLevel(BinarySearchTree*, int*, int);
+void inorder(BinarySearchTree*);
+void displayDeposit(DepositInfo*);
+DepositInfo** vectorOfDepositsOnSpecifiedLevel(BinarySearchTree*, int*, int);
 int searchNumberOfLevels(BinarySearchTree*);
-int  searchNumberOfNodesOnSpecifiedLevel(BinarySearchTree* , int , int );
-void populateVector(BinarySearchTree* , DepozitInfo** , int , int ,int*);
-void displayVector(DepozitInfo** , int* );
-DepozitInfo** roadVector(BinarySearchTree* , int* , int );
+int searchNumberOfNodesOnSpecifiedLevel(BinarySearchTree*, int, int);
+void populateVector(BinarySearchTree*, DepositInfo**, int, int, int*);
+void displayVector(DepositInfo**, int*);
+DepositInfo** roadVector(BinarySearchTree*, int*, int);
 int searchNumberOfNodesOnRoad(BinarySearchTree*, int);
-void populateRoadVector(BinarySearchTree*, DepozitInfo** , int , int* );
+void populateRoadVector(BinarySearchTree*, DepositInfo**, int, int*);
 void deleteLeavesNodes(BinarySearchTree**);
 int maximumNumberOfNodesLevel(BinarySearchTree*);
-void dezalocareGenerala(BinarySearchTree** BST, DepozitInfo** , DepozitInfo** , int* , int* );
-void dezalocareBST(BinarySearchTree**);
-void dezalocareVector(DepozitInfo**, int*);
-
+void generalDeallocation(BinarySearchTree**, DepositInfo**, DepositInfo**, int*, int*);
+void deallocateBST(BinarySearchTree**);
+void deallocateVector(DepositInfo**, int*);
 
 void main()
 {
@@ -54,72 +53,71 @@ void main()
 	BinarySearchTree* BST = NULL;
 	if (pFile)
 	{
-		char denumire[128];
-		char locatie[128];
-		int nrAngajati;
-		float salarii;
-		int vechime;
+		char name[128];
+		char location[128];
+		int numEmployees;
+		float salaries;
+		int seniority;
 		char* token;
 		char delimiter[] = ",\n";
 		char buffer[128];
 		while (fgets(buffer, sizeof(buffer), pFile))
 		{
 			token = strtok(buffer, delimiter);
-			strcpy(denumire, token);
+			strcpy(name, token);
 			token = strtok(NULL, delimiter);
-			strcpy(locatie, token);
+			strcpy(location, token);
 			token = strtok(NULL, delimiter);
-			nrAngajati = atoi(token);
+			numEmployees = atoi(token);
 			token = strtok(NULL, delimiter);
-			salarii = atof(token);
+			salaries = atof(token);
 			token = strtok(NULL, delimiter);
-			vechime = atoi(token);
-			DepozitInfo* dep = createDepozit(denumire,locatie,nrAngajati,salarii,vechime);
+			seniority = atoi(token);
+			DepositInfo* dep = createDeposit(name, location, numEmployees, salaries, seniority);
 			insertNode(&BST, dep);
 		}
-		inordine(BST);
-		//.2
-		int* noEL = (int*)malloc(sizeof(int));
-		noEL[0] = 0;
-		DepozitInfo** vector = vectorOfDepositsOnSpecifiedLevel(BST, noEL, 2);
-		displayVector(vector, noEL);
+		inorder(BST);
+		{
+			int* noEL = (int*)malloc(sizeof(int));
+			noEL[0] = 0;
+			DepositInfo** vector = vectorOfDepositsOnSpecifiedLevel(BST, noEL, 2);
+			displayVector(vector, noEL);
+			{
+				int* noEl1 = (int*)malloc(sizeof(int));
+				noEl1[0] = 0;
+				DepositInfo** vector1 = roadVector(BST, noEl1, 9);
+				displayVector(vector1, noEl1);
+				{
+					int maxLevel = maximumNumberOfNodesLevel(BST);
+					printf("Level with the maximum number of nodes : %d\n", maxLevel);
 
-		//.3
-		int* noEl1 = (int*)malloc(sizeof(int));
-		noEl1[0] = 0;
-		DepozitInfo** vector1 = roadVector(BST, noEl1, 9);
-		displayVector(vector1, noEl1);
+					deleteLeavesNodes(&BST);
+					printf("After deleting leaves:\n");
+					inorder(BST);
 
-		//.4
-		int maxLevel = maximumNumberOfNodesLevel(BST);
-		printf("Nivelul cu numarul maxim de noduri : %d\n", maxLevel);
-
-		//.5
-		deleteLeavesNodes(&BST);
-		printf("Dupa stergere frunze:\n");
-		inordine(BST);
-
-		//.6
-		dezalocareGenerala(&BST, vector, vector1, noEL, noEl1);
-		printf("Dupa stergere structuri:\n------------------\n");
-		inordine(BST);
-		displayVector(vector1, noEl1);
-		displayVector(vector, noEL);
+					generalDeallocation(&BST, vector, vector1, noEL, noEl1);
+					printf("After deleting structures:\n------------------\n");
+					inorder(BST);
+					displayVector(vector1, noEl1);
+					displayVector(vector, noEL);
+				}
+			}
+		}
 	}
 }
-DepozitInfo* createDepozit(char* denumire, char* locatie, int nrAngajati, float salarii, int vechime)
+DepositInfo* createDeposit(char* name, char* location, int numEmployees, float salaries, int seniority)
 {
-	DepozitInfo* dep = (DepozitInfo*)malloc(sizeof(DepozitInfo));
-	dep->denumire = (char*)malloc(strlen(denumire) + 1);
-	dep->locatie = (char*)malloc(strlen(locatie) + 1);
-	strcpy(dep->denumire, denumire);
-	strcpy(dep->locatie, locatie);
-	dep->nrAngajati = nrAngajati;
-	dep->salarii = salarii;
-	dep->vechime = vechime;
+	DepositInfo* dep = (DepositInfo*)malloc(sizeof(DepositInfo));
+	dep->name = (char*)malloc(strlen(name) + 1);
+	dep->location = (char*)malloc(strlen(location) + 1);
+	strcpy(dep->name, name);
+	strcpy(dep->location, location);
+	dep->numEmployees = numEmployees;
+	dep->salaries = salaries;
+	dep->seniority = seniority;
 	return dep;
 }
-BinarySearchTree* createNode(DepozitInfo* dep)
+BinarySearchTree* createNode(DepositInfo* dep)
 {
 	BinarySearchTree* node = (BinarySearchTree*)malloc(sizeof(BinarySearchTree));
 	node->info = dep;
@@ -127,7 +125,7 @@ BinarySearchTree* createNode(DepozitInfo* dep)
 	node->bFactor = 0;
 	return node;
 }
-void insertNode(BinarySearchTree** BST, DepozitInfo* dep)
+void insertNode(BinarySearchTree** BST, DepositInfo* dep)
 {
 	if (*BST == NULL)
 	{
@@ -135,20 +133,20 @@ void insertNode(BinarySearchTree** BST, DepozitInfo* dep)
 	}
 	else
 	{
-		if ((*BST)->info->nrAngajati > dep->nrAngajati)
+		if ((*BST)->info->numEmployees > dep->numEmployees)
 		{
 			insertNode(&(*BST)->left, dep);
 		}
-		else if ((*BST)->info->nrAngajati < dep->nrAngajati)
+		else if ((*BST)->info->numEmployees < dep->numEmployees)
 		{
 			insertNode(&(*BST)->right, dep);
 		}
 		else
 		{
-			DepozitInfo* aux = (*BST)->info;
+			DepositInfo* aux = (*BST)->info;
 			(*BST)->info = dep;
-			free(aux->denumire);
-			free(aux->locatie);
+			free(aux->name);
+			free(aux->location);
 			free(aux);
 		}
 	}
@@ -186,7 +184,7 @@ int getHeight(BinarySearchTree* root)
 {
 	if (root)
 	{
-		return 1 + max(getHeight(root->right) , getHeight(root->left));
+		return 1 + max(getHeight(root->right), getHeight(root->left));
 	}
 	else
 	{
@@ -195,44 +193,44 @@ int getHeight(BinarySearchTree* root)
 }
 void rightRotation(BinarySearchTree** pivot)
 {
-	BinarySearchTree* descendent = (*pivot)->left;
-	BinarySearchTree* aux = descendent->right;
+	BinarySearchTree* descendant = (*pivot)->left;
+	BinarySearchTree* aux = descendant->right;
 	(*pivot)->left = aux;
-	descendent->right = *pivot;
-	*pivot = descendent;
+	descendant->right = *pivot;
+	*pivot = descendant;
 }
 void leftRotation(BinarySearchTree** pivot)
 {
-	BinarySearchTree* descendent = (*pivot)->right;
-	BinarySearchTree* aux = descendent->left;
+	BinarySearchTree* descendant = (*pivot)->right;
+	BinarySearchTree* aux = descendant->left;
 	(*pivot)->right = aux;
-	descendent->left = *pivot;
-	*pivot = descendent;
+	descendant->left = *pivot;
+	*pivot = descendant;
 }
-void inordine(BinarySearchTree* BST)
+void inorder(BinarySearchTree* BST)
 {
 	if (BST)
 	{
-		inordine(BST->left);
-		displayDepozit(BST->info);
-		inordine(BST->right);
+		inorder(BST->left);
+		displayDeposit(BST->info);
+		inorder(BST->right);
 	}
 }
-void displayDepozit(DepozitInfo* dep)
+void displayDeposit(DepositInfo* dep)
 {
-	printf("Nume : %s -> Nr. angajati : %d\n", dep->denumire, dep->nrAngajati);
+	printf("Name : %s -> Number of employees : %d\n", dep->name, dep->numEmployees);
 }
-DepozitInfo** vectorOfDepositsOnSpecifiedLevel(BinarySearchTree* BST,int* noEL,int level)
+DepositInfo** vectorOfDepositsOnSpecifiedLevel(BinarySearchTree* BST, int* noEL, int level)
 {
-	int nrNivele = searchNumberOfLevels(BST);
-	if (level <= nrNivele)
+	int nrLevels = searchNumberOfLevels(BST);
+	if (level <= nrLevels)
 	{
-		noEL[0] = searchNumberOfNodesOnSpecifiedLevel(BST, level , 1);
-		DepozitInfo** vector = (DepozitInfo**)malloc(noEL[0] * sizeof(DepozitInfo*));
-		memset(vector, 0, noEL[0] * sizeof(DepozitInfo*));
+		noEL[0] = searchNumberOfNodesOnSpecifiedLevel(BST, level, 1);
+		DepositInfo** vector = (DepositInfo**)malloc(noEL[0] * sizeof(DepositInfo*));
+		memset(vector, 0, noEL[0] * sizeof(DepositInfo*));
 		int* currentPosition = (int*)malloc(sizeof(int));
 		currentPosition[0] = 0;
-		populateVector(BST, vector, level,1, currentPosition);
+		populateVector(BST, vector, level, 1, currentPosition);
 		return vector;
 	}
 	else
@@ -251,7 +249,7 @@ int searchNumberOfLevels(BinarySearchTree* BST)
 		return 0;
 	}
 }
-int  searchNumberOfNodesOnSpecifiedLevel(BinarySearchTree* BST,int level , int currentLevel)
+int searchNumberOfNodesOnSpecifiedLevel(BinarySearchTree* BST, int level, int currentLevel)
 {
 	if (BST)
 	{
@@ -269,13 +267,13 @@ int  searchNumberOfNodesOnSpecifiedLevel(BinarySearchTree* BST,int level , int c
 		return 0;
 	}
 }
-void populateVector(BinarySearchTree* BST,DepozitInfo** vector,int level,int currentLevel,int* currentPosition)
+void populateVector(BinarySearchTree* BST, DepositInfo** vector, int level, int currentLevel, int* currentPosition)
 {
 	if (BST)
 	{
 		if (currentLevel == level)
 		{
-			vector[currentPosition[0]] = createDepozit(BST->info->denumire, BST->info->locatie,BST->info->nrAngajati ,BST->info->salarii, BST->info->vechime);
+			vector[currentPosition[0]] = createDeposit(BST->info->name, BST->info->location, BST->info->numEmployees, BST->info->salaries, BST->info->seniority);
 			currentPosition[0]++;
 		}
 		else
@@ -285,24 +283,24 @@ void populateVector(BinarySearchTree* BST,DepozitInfo** vector,int level,int cur
 		}
 	}
 }
-void displayVector(DepozitInfo** vector,int* noEL)
+void displayVector(DepositInfo** vector, int* noEL)
 {
 	if (vector)
 	{
 		printf("Vector:\n----------------\n");
 		for (int i = 0; i < noEL[0]; i++)
 		{
-			displayDepozit(vector[i]);
+			displayDeposit(vector[i]);
 		}
 	}
 }
-DepozitInfo** roadVector(BinarySearchTree* BST, int* noEl, int key)
+DepositInfo** roadVector(BinarySearchTree* BST, int* noEl, int key)
 {
 	noEl[0] = searchNumberOfNodesOnRoad(BST, key);
-	if(noEl[0] < 10)
+	if (noEl[0] < 10)
 	{
-		DepozitInfo** vector = (DepozitInfo**)malloc(noEl[0] * sizeof(DepozitInfo*));
-		memset(vector, 0, noEl[0] * sizeof(DepozitInfo*));
+		DepositInfo** vector = (DepositInfo**)malloc(noEl[0] * sizeof(DepositInfo*));
+		memset(vector, 0, noEl[0] * sizeof(DepositInfo*));
 		int* currentPosition = (int*)malloc(sizeof(int));
 		currentPosition[0] = 0;
 		populateRoadVector(BST, vector, key, currentPosition);
@@ -317,19 +315,19 @@ int searchNumberOfNodesOnRoad(BinarySearchTree* BST, int key)
 {
 	if (BST)
 	{
-		if (BST->info->nrAngajati == key)
+		if (BST->info->numEmployees == key)
 		{
 			return 1;
 		}
 		else
 		{
-			if (BST->info->nrAngajati < key)
+			if (BST->info->numEmployees < key)
 			{
-				return 1+ searchNumberOfNodesOnRoad(BST->right, key);
+				return 1 + searchNumberOfNodesOnRoad(BST->right, key);
 			}
 			else
 			{
-				return 1+ searchNumberOfNodesOnRoad(BST->left, key);
+				return 1 + searchNumberOfNodesOnRoad(BST->left, key);
 			}
 		}
 	}
@@ -338,13 +336,13 @@ int searchNumberOfNodesOnRoad(BinarySearchTree* BST, int key)
 		return 10;
 	}
 }
-void populateRoadVector(BinarySearchTree* BST,DepozitInfo** vector,int key,int* currentPosition)
+void populateRoadVector(BinarySearchTree* BST, DepositInfo** vector, int key, int* currentPosition)
 {
-	vector[currentPosition[0]] = createDepozit(BST->info->denumire, BST->info->locatie, BST->info->nrAngajati, BST->info->salarii, BST->info->vechime);
+	vector[currentPosition[0]] = createDeposit(BST->info->name, BST->info->location, BST->info->numEmployees, BST->info->salaries, BST->info->seniority);
 	currentPosition[0]++;
-	if (BST->info->nrAngajati != key)
+	if (BST->info->numEmployees != key)
 	{
-		if (key < BST->info->nrAngajati)
+		if (key < BST->info->numEmployees)
 		{
 			populateRoadVector(BST->left, vector, key, currentPosition);
 		}
@@ -376,12 +374,12 @@ void deleteLeavesNodes(BinarySearchTree** BST)
 {
 	if (*BST)
 	{
-		if ((*BST)->left == NULL&&(*BST)->right ==NULL)
+		if ((*BST)->left == NULL && (*BST)->right == NULL)
 		{
 			BinarySearchTree* aux = *BST;
 			*BST = NULL;
-			free(aux->info->denumire);
-			free(aux->info->locatie);
+			free(aux->info->name);
+			free(aux->info->location);
 			free(aux->info);
 			free(aux);
 		}
@@ -392,32 +390,32 @@ void deleteLeavesNodes(BinarySearchTree** BST)
 		}
 	}
 }
-void dezalocareGenerala(BinarySearchTree** BST, DepozitInfo** vector1, DepozitInfo** vector2, int* n1, int* n2)
+void generalDeallocation(BinarySearchTree** BST, DepositInfo** vector1, DepositInfo** vector2, int* n1, int* n2)
 {
-	dezalocareBST(BST);
-	dezalocareVector(vector1, n1);
-	dezalocareVector(vector2, n2);
+	deallocateBST(BST);
+	deallocateVector(vector1, n1);
+	deallocateVector(vector2, n2);
 }
-void dezalocareBST(BinarySearchTree** BST)
+void deallocateBST(BinarySearchTree** BST)
 {
 	if (*BST)
 	{
-		dezalocareBST(&(*BST)->left);
-		dezalocareBST(&(*BST)->right);
+		deallocateBST(&(*BST)->left);
+		deallocateBST(&(*BST)->right);
 		BinarySearchTree* aux = *BST;
 		*BST = NULL;
-		free(aux->info->denumire);
-		free(aux->info->locatie);
+		free(aux->info->name);
+		free(aux->info->location);
 		free(aux->info);
 		free(aux);
 	}
 }
-void dezalocareVector(DepozitInfo** vector, int* n)
+void deallocateVector(DepositInfo** vector, int* n)
 {
 	for (int i = 0; i < n[0]; i++)
 	{
-		free(vector[i]->denumire);
-		free(vector[i]->locatie);
+		free(vector[i]->name);
+		free(vector[i]->location);
 		free(vector[i]);
 	}
 	free(vector);
