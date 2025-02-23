@@ -1,26 +1,27 @@
-# Implementarea unui Arbore Binare de Căutare pentru Informații despre Fotografii
+# Implementation of a Binary Search Tree for Managing Photo Information
 
-Codul furnizat este un program în C care implementează un arbore binar de căutare (BinarySearchTree) pentru gestionarea informațiilor despre fotografii.
+The provided C program implements a **Binary Search Tree (BST)** for managing information about photos.
 
-## Traversare Inordine:
-Afișează toate fotografiile din arborele binar de căutare în ordine sortată. 
-Traversarea inordine într-un BST afișează nodurile în ordinea crescătoare a cheilor, aici folosindu-se id-ul fotografiei ca și cheie.
+## Inorder Traversal:
+Displays all photos in the binary search tree in sorted order.
+Inorder traversal in a BST displays the nodes in ascending order of their keys, using the **photo ID** as the key in this case.
 
-## Căutare Fotografii în Același Oraș:
-Contorizează câte fotografii sunt înregistrate într-un oraș specificat, în acest caz "Giurgiu". 
-Funcția `searchForFotosInSameTown` parcurge arborele și numără nodurile care au orașul egal cu cel căutat.
+## Searching for Photos in the Same City:
+Counts how many photos are recorded in a specified city, in this case, **"Giurgiu"**.
+The function `searchForFotosInSameTown` traverses the tree and counts the nodes where the city matches the searched one.
 
-## Modificare Dată Fotografie:
-Schimbă data unei fotografii specificate prin id.
-Funcția `modificareData` caută nodul cu id-ul specificat și actualizează data acelei fotografii.
+## Modifying Photo Date:
+Changes the date of a specified photo by its ID.
+The function `modificareData` searches for the node with the specified ID and updates the date of that photo.
 
-## Dezalocare Rădăcină:
-Elimină rădăcina arborelui binar de căutare și reajustează arborele astfel încât să rămână în continuare un BST valid. Funcția `dezalocareRadacina` gestionează acest proces.
+## Deallocating the Root:
+Removes the root of the binary search tree and adjusts the tree structure so that it remains a valid BST.
+The function `dezalocareRadacina` handles this process.
 
-## Conversie BST în Vector:
-Transformă arborele binar de căutare într-un vector, adăugând în vector doar fotografiile cu o rezoluție specificată.
-Funcțiile `fromBSTToVector` și `populateVector` sunt folosite pentru această conversie.
+## Converting BST to a Vector:
+Transforms the binary search tree into a vector, adding only the photos that meet a specified resolution criterion.
+The functions `fromBSTToVector` and `populateVector` are used for this conversion.
 
-## Afișare Fotografii După O Anumită Dată:
-Afișează toate fotografiile care au o dată mai recentă decât o dată specificată. 
-Funcția `displayFotoOnlyAboveSpecifiedDate` compară datele și afișează doar fotografiile care îndeplinesc condiția.
+## Displaying Photos After a Specific Date:
+Displays all photos that have a **more recent date** than a given specified date.
+The function `displayFotoOnlyAboveSpecifiedDate` compares dates and displays only the photos that meet the condition.
