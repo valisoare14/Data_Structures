@@ -1,39 +1,41 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include<stdio.h>
-#include<string.h>
-#include<malloc.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <malloc.h>
+#include <stdlib.h>
 #define LINE_SIZE 128
 
-struct Rezervare
+// Structure describing a reservation
+struct Reservation
 {
-	unsigned int id_rezervare;
-	char* denumire_hotel;
-	unsigned char numar_camere;
-	char* nume_client;
-	float suma_de_plata;
+	unsigned int reservation_id;
+	char* hotelName;
+	unsigned char roomCount;
+	char* clientName;
+	float paymentAmount;
 };
-typedef struct Rezervare RezervareInfo;
+typedef struct Reservation ReservationInfo;
 
+// Classic BST structure (keyed by reservation_id)
 struct BST
 {
 	struct BST* left;
 	struct BST* right;
-	RezervareInfo* info;
+	ReservationInfo* info;
 };
 typedef struct BST BinarySearchTree;
 
-//usefull info mem
-RezervareInfo* createRezervare(unsigned char , char* , unsigned char , char* , float );
-void insertNode(BinarySearchTree** , RezervareInfo* );
-BinarySearchTree* createNode(RezervareInfo*);
-void preordine(BinarySearchTree*);
-void displayInfo(RezervareInfo*);
-float contravaloare(BinarySearchTree*, char*);
+// Function prototypes
+ReservationInfo* createReservation(unsigned char, char*, unsigned char, char*, float);
+void insertNode(BinarySearchTree**, ReservationInfo*);
+BinarySearchTree* createNode(ReservationInfo*);
+void preOrder(BinarySearchTree*);
+void displayReservation(ReservationInfo*);
+float totalPayment(BinarySearchTree*, char*);
 void deleteMin(BinarySearchTree**);
-int* NumberOfNodesPerLevel(BinarySearchTree*);
-int  searchNumberOfLevels(BinarySearchTree*);
-void populateVector(BinarySearchTree* , int* , int );
+int* numberOfNodesPerLevel(BinarySearchTree*);
+int searchNumberOfLevels(BinarySearchTree*);
+void populateVector(BinarySearchTree*, int*, int);
 void displayVector(int*, int);
 
 void main()
@@ -42,116 +44,127 @@ void main()
 	BinarySearchTree* BST = NULL;
 	if (pFile)
 	{
-		unsigned int id_rezervare;
-		char denumire_hotel[LINE_SIZE];
-		unsigned char numar_camere;
-		char nume_client[LINE_SIZE];
-		float suma_de_plata;
+		unsigned int reservation_id;
+		char hotelName[LINE_SIZE];
+		unsigned char roomCount;
+		char clientName[LINE_SIZE];
+		float paymentAmount;
 		char* token;
 		char delimiter[] = ",\n";
 		char lineBuffer[LINE_SIZE];
 		while (fgets(lineBuffer, sizeof(lineBuffer), pFile))
 		{
 			token = strtok(lineBuffer, delimiter);
-			id_rezervare = atoi(token);
+			reservation_id = atoi(token);
 			token = strtok(NULL, delimiter);
-			strcpy(denumire_hotel, token);
+			strcpy(hotelName, token);
 			token = strtok(NULL, delimiter);
-			numar_camere = atoi(token);
+			roomCount = (unsigned char)atoi(token);
 			token = strtok(NULL, delimiter);
-			strcpy(nume_client, token);
+			strcpy(clientName, token);
 			token = strtok(NULL, delimiter);
-			suma_de_plata = atof(token);
-			RezervareInfo* rez = createRezervare(id_rezervare,denumire_hotel,numar_camere,nume_client,suma_de_plata);
-			insertNode(&BST, rez);
+			paymentAmount = (float)atof(token);
+			ReservationInfo* reservation = createReservation(reservation_id, hotelName, roomCount, clientName, paymentAmount);
+			insertNode(&BST, reservation);
 		}
-		//afisare preordine
-		preordine(BST);
+		preOrder(BST);
 
-		//contravaloare
-		printf("\n\nContravaloarea rezervarilor :%f\n" , contravaloare(BST , " Popescu Razvan "));
-	
-		//.4
-		int* vector = NumberOfNodesPerLevel(BST);
-		displayVector(vector, searchNumberOfLevels(BST));
-		deleteMin(&BST);
-		printf("Dupa stergere minim:\n");
-		preordine(BST);
+		printf("\n\nTotal payment: %f\n", totalPayment(BST, " Popescu Razvan "));
 
-		//.5
-		int* vector1 = NumberOfNodesPerLevel(BST);
-		displayVector(vector1, searchNumberOfLevels(BST));
+		{
+			int* levelVector = numberOfNodesPerLevel(BST);
+			displayVector(levelVector, searchNumberOfLevels(BST));
+			deleteMin(&BST);
+			printf("After deleting the minimum:\n");
+			preOrder(BST);
+		}
+		{
+			int* levelVector2 = numberOfNodesPerLevel(BST);
+			displayVector(levelVector2, searchNumberOfLevels(BST));
+		}
 	}
 }
-RezervareInfo* createRezervare(unsigned char id_rezervare, char* denumire_hotel, unsigned char numar_camere, char* nume_client, float suma_de_plata)
+
+// Creates a reservation
+ReservationInfo* createReservation(unsigned char reservation_id, char* hotelName, unsigned char roomCount, char* clientName, float paymentAmount)
 {
-	RezervareInfo* rez = (RezervareInfo*)malloc(sizeof(RezervareInfo));
-	rez->denumire_hotel = (char*)malloc(strlen(denumire_hotel) + 1);
-	rez->nume_client = (char*)malloc(strlen(nume_client) + 1);
-	strcpy(rez->denumire_hotel, denumire_hotel);
-	strcpy(rez->nume_client, nume_client);
-	rez->id_rezervare = id_rezervare;
-	rez->numar_camere = numar_camere;
-	rez->suma_de_plata = suma_de_plata;
-	return rez;
+	ReservationInfo* r = (ReservationInfo*)malloc(sizeof(ReservationInfo));
+	r->hotelName = (char*)malloc(strlen(hotelName) + 1);
+	r->clientName = (char*)malloc(strlen(clientName) + 1);
+	strcpy(r->hotelName, hotelName);
+	strcpy(r->clientName, clientName);
+	r->reservation_id = reservation_id;
+	r->roomCount = roomCount;
+	r->paymentAmount = paymentAmount;
+	return r;
 }
-void insertNode(BinarySearchTree** BST, RezervareInfo* rez)
+
+// Inserts a node into the BST
+void insertNode(BinarySearchTree** BST, ReservationInfo* r)
 {
 	if (*BST == NULL)
 	{
-		*BST = createNode(rez);
+		*BST = createNode(r);
 	}
 	else
 	{
-		if ((*BST)->info->id_rezervare > rez->id_rezervare)
+		if ((*BST)->info->reservation_id > r->reservation_id)
 		{
-			insertNode(&(*BST)->left, rez);
+			insertNode(&(*BST)->left, r);
 		}
-		else if ((*BST)->info->id_rezervare < rez->id_rezervare)
+		else if ((*BST)->info->reservation_id < r->reservation_id)
 		{
-			insertNode(&(*BST)->right, rez);
+			insertNode(&(*BST)->right, r);
 		}
 		else
 		{
-			RezervareInfo* aux = (*BST)->info;
-			(*BST)->info = rez;
-			free(aux->denumire_hotel);
-			free(aux->nume_client);
+			ReservationInfo* aux = (*BST)->info;
+			(*BST)->info = r;
+			free(aux->hotelName);
+			free(aux->clientName);
 			free(aux);
 		}
 	}
 }
-BinarySearchTree* createNode(RezervareInfo* rez)
+
+// Creates a BST node
+BinarySearchTree* createNode(ReservationInfo* r)
 {
-	BinarySearchTree* aux = (BinarySearchTree*)malloc(sizeof(BinarySearchTree));
-	aux->info = rez;
-	aux->left = aux->right = NULL;
-	return aux;
+	BinarySearchTree* node = (BinarySearchTree*)malloc(sizeof(BinarySearchTree));
+	node->info = r;
+	node->left = node->right = NULL;
+	return node;
 }
-void preordine(BinarySearchTree* BST)
+
+// Pre-order traversal
+void preOrder(BinarySearchTree* BST)
 {
 	if (BST)
 	{
-		preordine(BST->left);
-		displayInfo(BST->info);
-		preordine(BST->right);
+		preOrder(BST->left);
+		displayReservation(BST->info);
+		preOrder(BST->right);
 	}
 }
-void displayInfo(RezervareInfo* rez)
+
+// Displays one reservation
+void displayReservation(ReservationInfo* r)
 {
-	printf("ID :%d -> Nume:%s\n", rez->id_rezervare, rez->nume_client);
+	printf("ID: %d -> Client Name: %s\n", r->reservation_id, r->clientName);
 }
-float contravaloare(BinarySearchTree* BST, char* nume)
+
+// Computes the total payment for a given client name
+float totalPayment(BinarySearchTree* BST, char* client)
 {
 	if (BST)
 	{
-		if (strcmp(BST->info->nume_client, nume) == 0)
+		if (strcmp(BST->info->clientName, client) == 0)
 		{
-			return BST->info->suma_de_plata + contravaloare(BST->left,nume) + contravaloare(BST->right,nume);
+			return BST->info->paymentAmount + totalPayment(BST->left, client) + totalPayment(BST->right, client);
 		}
 		else
 		{
-			return contravaloare(BST->left, nume) + contravaloare(BST->right, nume);
+			return totalPayment(BST->left, client) + totalPayment(BST->right, client);
 		}
 	}
 	else
@@ -159,6 +172,8 @@ float contravaloare(BinarySearchTree* BST, char* nume)
 		return 0;
 	}
 }
+
+// Deletes the minimum node
 void deleteMin(BinarySearchTree** BST)
 {
 	if (*BST)
@@ -173,33 +188,38 @@ void deleteMin(BinarySearchTree** BST)
 			{
 				BinarySearchTree* aux = *BST;
 				*BST = (*BST)->right;
-				free(aux->info->denumire_hotel);
-				free(aux->info->nume_client);
+				free(aux->info->hotelName);
+				free(aux->info->clientName);
 				free(aux->info);
 				free(aux);
 			}
 			else
 			{
-				BinarySearchTree* BSTe = *BST;
-				free(BSTe->info->denumire_hotel);
-				free(BSTe->info->nume_client);
-				free(BSTe->info);
-				free(BSTe);
+				BinarySearchTree* temp = *BST;
+				free(temp->info->hotelName);
+				free(temp->info->clientName);
+				free(temp->info);
+				free(temp);
 				*BST = NULL;
 			}
 		}
 	}
 }
-int* NumberOfNodesPerLevel(BinarySearchTree* BST)
+
+// Returns an array with the number of nodes per level
+int* numberOfNodesPerLevel(BinarySearchTree* BST)
 {
-	int numberOfLevels = searchNumberOfLevels(BST);
-	int* vector = (int*)malloc(numberOfLevels * sizeof(int));
-	memset(vector, 0, numberOfLevels * sizeof(int));
+	int numberOfLvls = searchNumberOfLevels(BST);
+	int* vector = (int*)malloc(numberOfLvls * sizeof(int));
+	memset(vector, 0, numberOfLvls * sizeof(int));
 	int currentLevel = 1;
-	populateVector(BST, vector , currentLevel);
+	populateVector(BST, vector, currentLevel);
 	return vector;
 }
-int searchNumberOfLevels(BinarySearchTree* BST){
+
+// Determines how many levels the BST has
+int searchNumberOfLevels(BinarySearchTree* BST)
+{
 	if (BST)
 	{
 		return 1 + max(searchNumberOfLevels(BST->left), searchNumberOfLevels(BST->right));
@@ -209,20 +229,24 @@ int searchNumberOfLevels(BinarySearchTree* BST){
 		return 0;
 	}
 }
-void populateVector(BinarySearchTree* BST,int* vector,int currentLevel)
+
+// Fills an array with the number of nodes at each level
+void populateVector(BinarySearchTree* BST, int* vector, int currentLevel)
 {
 	if (BST)
 	{
 		vector[currentLevel - 1]++;
-		populateVector(BST->left, vector, currentLevel+1);
-		populateVector(BST->right, vector, currentLevel+1);
+		populateVector(BST->left, vector, currentLevel + 1);
+		populateVector(BST->right, vector, currentLevel + 1);
 	}
 }
-void  displayVector(int* vector, int n)
+
+// Displays an array of the number of nodes per level
+void displayVector(int* vector, int n)
 {
-	printf("Nivele:\n");
+	printf("Levels:\n");
 	for (int i = 0; i < n; i++)
 	{
-		printf("Nivel %d -> noduri: %d\n" , i+1 , vector[i]);
+		printf("Level %d -> nodes: %d\n", i + 1, vector[i]);
 	}
 }
