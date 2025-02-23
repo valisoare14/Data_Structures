@@ -1,28 +1,32 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
-#include<malloc.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <malloc.h>
+
 #define HASHTABLE_INIT_SIZE 5
 #define LINE_SIZE 128
 
-struct Proiect
+// Structure describing a project
+struct Project
 {
-	unsigned int cod;
-	char* titlu;
-	char* beneficiar;
-	unsigned char numar_executanti;
-	float buget;
+	unsigned int code;        // was cod
+	char* title;              // was titlu
+	char* beneficiary;        // was beneficiar
+	unsigned char executants; // was numar_executanti
+	float budget;             // was buget
 };
-typedef struct Proiect ProiectInfo;
+typedef struct Project ProjectInfo;
 
+// A node in the singly circular linked list for each bucket of the hash table
 struct Node
 {
-	ProiectInfo* info;
+	ProjectInfo* info;
 	struct Node* next;
 };
 typedef struct Node HashNode;
 
+// Hash table structure
 struct HashTable
 {
 	HashNode** buckets;
@@ -30,78 +34,106 @@ struct HashTable
 };
 typedef struct HashTable HashTable;
 
-//usefull info
-ProiectInfo* createProject(unsigned int , char* , char* , unsigned char , float );
-void insertIntoHashTable(HashTable*, ProiectInfo*);
-HashNode* createNode(ProiectInfo*);
-int hashcode(char*, int );
-void putNode(HashNode** , HashNode* );
+// Function prototypes
+ProjectInfo* createProject(unsigned int, char*, char*, unsigned char, float);
+void insertIntoHashTable(HashTable*, ProjectInfo*);
+HashNode* createNode(ProjectInfo*);
+int hashFunction(char*, int);
+void putNode(HashNode**, HashNode*);
 void displayHashTable(HashTable);
-void displayProject(ProiectInfo*);
-float bugetTotal(HashTable , char* );
-HashNode* fromHTtoList(HashTable, float );
+void displayProject(ProjectInfo*);
+float totalBudget(HashTable, char*);
+HashNode* fromHashTableToList(HashTable, float);
 
-
-void main()
+// Main
+int main()
 {
 	FILE* pFile = fopen("Data.txt", "r");
-	HashTable HT = { .buckets = NULL , .size = 0 };
+	HashTable HT;
+	HT.buckets = NULL;
+	HT.size = 0;
+
 	if (pFile)
 	{
-		unsigned int cod;
-		char titlu[LINE_SIZE];
-		char beneficiar[LINE_SIZE];
-		unsigned char numar_executanti;
-		float buget;
+		unsigned int code;
+		char title[LINE_SIZE];
+		char beneficiary[LINE_SIZE];
+		unsigned char executants;
+		float budget;
+
 		char* token;
-		char delimiter[] =",\n";
+		char delimiter[] = ",\n";
 		char buffer[LINE_SIZE];
+
 		while (fgets(buffer, sizeof(buffer), pFile))
 		{
 			token = strtok(buffer, delimiter);
-			cod = atoi(token);
+			code = (unsigned int)atoi(token);
+
 			token = strtok(NULL, delimiter);
-			strcpy(titlu, token);
+			strcpy(title, token);
+
 			token = strtok(NULL, delimiter);
-			strcpy(beneficiar, token);
+			strcpy(beneficiary, token);
+
 			token = strtok(NULL, delimiter);
-			numar_executanti = atoi(token);
+			executants = (unsigned char)atoi(token);
+
 			token = strtok(NULL, delimiter);
-			buget = atof(token);
-			ProiectInfo* proj = createProject(cod,titlu,beneficiar,numar_executanti,buget);
+			budget = (float)atof(token);
+
+			ProjectInfo* proj = createProject(code, title, beneficiary, executants, budget);
 			insertIntoHashTable(&HT, proj);
 		}
-		//.2
+
+		fclose(pFile);
+
+		// 2) Display the hash table
 		displayHashTable(HT);
 
-		//.3
-		float bugeT = bugetTotal(HT, "ROMAC");
-		printf("Buget total : %.2f\n", bugeT);
+		// 3) Compute total budget for a given beneficiary
+		float total = totalBudget(HT, "ROMAC");
+		printf("Total budget for beneficiary 'ROMAC': %.2f\n", total);
 
-		//.4
-		
-		//.5
-		HashNode* list = fromHTtoList(HT, 20000);
+		// 5) Extract a list of projects with budget > 20000
+		HashNode* list = fromHashTableToList(HT, 20000.0f);
+		printf("\nProjects with budget > 20000:\n");
 		while (list)
 		{
 			displayProject(list->info);
 			list = list->next;
 		}
 	}
+	else
+	{
+		printf("Failed to open file.\n");
+	}
+
+	return 0;
 }
-ProiectInfo* createProject(unsigned int cod,char* titlu,char* beneficiar,unsigned char numar_executanti,float buget)
+
+// Creates a project
+ProjectInfo* createProject(unsigned int code,
+                           char* title,
+                           char* beneficiary,
+                           unsigned char executants,
+                           float budget)
 {
-	ProiectInfo* aux = (ProiectInfo*)malloc(sizeof(ProiectInfo));
-	aux->beneficiar = (char*)malloc(strlen(beneficiar) + 1);
-	aux->titlu = (char*)malloc(strlen(titlu) + 1);
-	strcpy(aux->beneficiar, beneficiar);
-	strcpy(aux->titlu, titlu);
-	aux->buget = buget;
-	aux->cod = cod;
-	aux->numar_executanti = numar_executanti;
-	return aux;
+	ProjectInfo* p = (ProjectInfo*)malloc(sizeof(ProjectInfo));
+	p->title = (char*)malloc(strlen(title) + 1);
+	p->beneficiary = (char*)malloc(strlen(beneficiary) + 1);
+
+	strcpy(p->title, title);
+	strcpy(p->beneficiary, beneficiary);
+
+	p->budget = budget;
+	p->code = code;
+	p->executants = executants;
+	return p;
 }
-void insertIntoHashTable(HashTable* HT, ProiectInfo* proj)
+
+// Inserts a project into the hash table
+void insertIntoHashTable(HashTable* HT, ProjectInfo* proj)
 {
 	if (HT->buckets == NULL)
 	{
@@ -109,39 +141,49 @@ void insertIntoHashTable(HashTable* HT, ProiectInfo* proj)
 		memset(HT->buckets, 0, sizeof(HashNode*) * HASHTABLE_INIT_SIZE);
 		HT->size = HASHTABLE_INIT_SIZE;
 	}
+
 	HashNode* node = createNode(proj);
-	int hashCode = hashcode(node->info->beneficiar, HT->size);
-	putNode(&(HT->buckets[hashCode]), node);
+	int key = hashFunction(proj->beneficiary, HT->size);
+	putNode(&(HT->buckets[key]), node);
 }
-HashNode* createNode (ProiectInfo* proj)
+
+// Creates a new hash node
+HashNode* createNode(ProjectInfo* proj)
 {
 	HashNode* node = (HashNode*)malloc(sizeof(HashNode));
 	node->info = proj;
 	node->next = NULL;
 	return node;
 }
-int hashcode(char* beneficiar, int size)
+
+// Simple hash function based on first character of the beneficiary
+int hashFunction(char* beneficiary, int size)
 {
-	return beneficiar[0] % size;
+	return beneficiary[0] % size;
 }
-void putNode(HashNode** list, HashNode* node)
+
+// Inserts a node into the circular list at the given bucket
+void putNode(HashNode** bucket, HashNode* node)
 {
-	if (*list == NULL)
+	if (*bucket == NULL)
 	{
 		node->next = node;
-		*list = node;
+		*bucket = node;
 	}
 	else
 	{
-		node->next = (*list)->next;
-		(*list)->next = node;
-		*list = node;
+		node->next = (*bucket)->next;
+		(*bucket)->next = node;
+		*bucket = node;
 	}
 }
+
+// Displays the entire hash table
 void displayHashTable(HashTable HT)
 {
 	if (HT.buckets)
 	{
+		printf("\nHash Table:\n\n");
 		for (int i = 0; i < HT.size; i++)
 		{
 			if (HT.buckets[i])
@@ -156,34 +198,44 @@ void displayHashTable(HashTable HT)
 		}
 	}
 }
-void displayProject(ProiectInfo* proj)
+
+// Displays a single project
+void displayProject(ProjectInfo* proj)
 {
 	if (proj)
 	{
-		printf("Cod proiect:%d -> Beneficiar: %s\n" , proj->cod,proj->beneficiar);
+		printf("Project code: %d | Title: %s | Beneficiary: %s | Budget: %.2f\n",
+		       proj->code, proj->title, proj->beneficiary, proj->budget);
 	}
 }
-float bugetTotal(HashTable HT, char* beneficiar)
+
+// Returns the total budget for a given beneficiary
+float totalBudget(HashTable HT, char* beneficiary)
 {
-	int hashCode = hashcode(beneficiar, HT.size);
-	float bugetTotal = 0;
-	if (HT.buckets[hashCode])
+	float total = 0.0f;
+	int key = hashFunction(beneficiary, HT.size);
+
+	HashNode* bucket = HT.buckets[key];
+	if (bucket)
 	{
-		HashNode* aux = HT.buckets[hashCode];
+		HashNode* aux = bucket;
 		do
 		{
-			if (strcmp(aux->info->beneficiar, beneficiar) == 0)
+			if (strcmp(aux->info->beneficiary, beneficiary) == 0)
 			{
-				bugetTotal += aux->info->buget;
+				total += aux->info->budget;
 			}
 			aux = aux->next;
-		} while (aux != HT.buckets[hashCode]);
+		} while (aux != bucket);
 	}
-	return bugetTotal;
+	return total;
 }
-HashNode* fromHTtoList(HashTable HT, float buget)
+
+// Extracts projects from the hash table into a linear list if the budget is > given threshold
+HashNode* fromHashTableToList(HashTable HT, float budget)
 {
 	HashNode* list = NULL;
+
 	for (int i = 0; i < HT.size; i++)
 	{
 		if (HT.buckets[i])
@@ -191,18 +243,20 @@ HashNode* fromHTtoList(HashTable HT, float buget)
 			HashNode* aux = HT.buckets[i];
 			do
 			{
-				if (aux->info->buget > buget)
+				if (aux->info->budget > budget)
 				{
-					if (list == NULL)
-					{
-						list = createNode(createProject(aux->info->cod, aux->info->titlu, aux->info->beneficiar, aux->info->numar_executanti, aux->info->buget));
-					}
-					else
-					{
-						HashNode* node= createNode(createProject(aux->info->cod, aux->info->titlu, aux->info->beneficiar, aux->info->numar_executanti, aux->info->buget));
-						node->next = list;
-						list = node;
-					}
+					// Create a copy of the project for the list
+					ProjectInfo* copy = createProject(
+					    aux->info->code,
+					    aux->info->title,
+					    aux->info->beneficiary,
+					    aux->info->executants,
+					    aux->info->budget);
+
+					// Insert at the head of the linear list
+					HashNode* newNode = createNode(copy);
+					newNode->next = list;
+					list = newNode;
 				}
 				aux = aux->next;
 			} while (aux != HT.buckets[i]);
