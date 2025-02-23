@@ -1,12 +1,12 @@
-# Data_Structures-implementation
-In folderele atasate in repository au fost implementate structurile de date mentionate mai jos, asupra carora s-au realizat multiple operartii de manipulare cu aplicatii utile in lumea reala.
+# Data_Structures
+In the folders attached to the repository, the data structures mentioned below have been implemented, with multiple manipulation operations performed, demonstrating practical applications in the real world.
 
-## Structuri implementate :
-- lista simpla inlantuita
-- lista dublu inlantuita
-- lista de liste
-- arbore binar de cautare
-- arbore binar echilibrat
-- coada de prioritati
-- tabel de dispersie
-- graf
+## Implemented Structures:
+- Singly linked list
+- Doubly linked list
+- List of lists
+- Binary search tree
+- Balanced binary tree
+- Priority queue
+- Hash table
+- Graph
