@@ -11,7 +11,7 @@ The vector is then displayed using `displayVector()`.
 
 ## Determining and Displaying Employees from a Specific Department:
 Creates a **queue of employees** (using a **circular list**) who belong to a specific department (**codDepartament = 2**).  
-The queue is built and returned by the function `determinareAngajatiDinDepartamentulX()`.
+The queue is built and returned by the function `buildQueueFromDepartment()`.
 
 ## Creating and Displaying a Vector of Employees with the Lowest Salaries:
 Constructs a **vector of employees** who have the **lowest salaries** from a given queue.
