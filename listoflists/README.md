@@ -1,15 +1,17 @@
-# Gestionarea unei Liste de Liste pentru Managementul Resurselor Umane
+# Managing a List of Lists for Human Resources Management
 
-În acest fișier C, se implementează gestionarea unei liste de liste care conțin informații despre angajați, reprezentând un sistem pentru managementul de resurse umane. Mai jos sunt explicate operațiile marcate în funcția main():
+This C file implements the management of a **list of lists** containing employee information, representing a **human resource management system**. Below are explanations of the operations marked in the `main()` function:
 
-## Afișare Lista de Liste:
-Afișează toate informațiile despre angajați din structura de date lista de liste, care include angajați grupați după departamente.
+## Displaying the List of Lists:
+Displays all employee information from the **list of lists** data structure, where employees are grouped by department.
 
-## Creare și Afișare Vector de Angajați:
-Construiește un vector de angajați care câștigă peste un prag de salariu orar specificat (în acest caz, 160.5). Vectorul este apoi afișat folosind `displayVector()`.
+## Creating and Displaying an Employee Vector:
+Constructs a **vector of employees** who earn above a specified hourly wage threshold (**160.5** in this case).  
+The vector is then displayed using `displayVector()`.
 
-## Determinarea și Afișarea Angajaților dintr-un Anumit Departament:
-Creează o coadă de angajați (folosind o listă circulară) care aparțin unui departament specificat (codDepartament = 2). Coada este construită și returnată de funcția `determinareAngajatiDinDepartamentulX()`.
+## Determining and Displaying Employees from a Specific Department:
+Creates a **queue of employees** (using a **circular list**) who belong to a specific department (**codDepartament = 2**).  
+The queue is built and returned by the function `determinareAngajatiDinDepartamentulX()`.
 
-## Creare și Afișare Vector de Angajați cu Salarii Mici:
-Se contruieste un vector cu angajați care au salariile cele mai mici dintr-o coadă dată.
+## Creating and Displaying a Vector of Employees with the Lowest Salaries:
+Constructs a **vector of employees** who have the **lowest salaries** from a given queue.
