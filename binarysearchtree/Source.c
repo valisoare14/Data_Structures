@@ -1,41 +1,43 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include<stdio.h>
-#include<string.h>
-#include<malloc.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <malloc.h>
+#include <stdlib.h>
 #define V_INIT_SIZE 8
 
-struct Fotografie
+// Structure describing a photograph
+struct Photo
 {
-	unsigned int idFotografie;
-	char* oras;
-	char* data;
-	float rezolutie;
+	unsigned int photoId;       // was idFotografie
+	char* city;                 // was oras
+	char* date;                 // was data
+	float resolution;           // was rezolutie
 };
-typedef struct Fotografie FotografieInfo;
+typedef struct Photo PhotoInfo;
 
+// Standard binary search tree structure (by photoId)
 struct BinarySearchTree
 {
-	FotografieInfo* info;
+	PhotoInfo* info;
 	struct BinarySearchTree* left;
 	struct BinarySearchTree* right;
 };
 typedef struct BinarySearchTree BinarySearchTree;
 
-//memory
-FotografieInfo* createFotoGrafie(unsigned int , char* , char* , float );
-void insertBST(BinarySearchTree**, FotografieInfo*);
-BinarySearchTree* createNode(FotografieInfo* );
-void inordine(BinarySearchTree*);
-void displayFoto(FotografieInfo*);
-int searchForFotosInSameTown(BinarySearchTree*, char*);
-void modificareData(BinarySearchTree**, unsigned int, char*);
-void dezalocareRadacina(BinarySearchTree**);
-FotografieInfo** fromBSTToVector(BinarySearchTree*, float, int*);
-int searchNumberOfFoto(BinarySearchTree*, float);
-void populateVector(BinarySearchTree*, FotografieInfo**, int*, float);
-void printVector(FotografieInfo**, int*);
-void displayFotoOnlyAboveSpecifiedDate(BinarySearchTree*, char*);
+// Function prototypes
+PhotoInfo* createPhoto(unsigned int, char*, char*, float);
+void insertBST(BinarySearchTree**, PhotoInfo*);
+BinarySearchTree* createNode(PhotoInfo*);
+void inorder(BinarySearchTree*);
+void displayPhoto(PhotoInfo*);
+int searchForPhotosInCity(BinarySearchTree*, char*);
+void modifyDate(BinarySearchTree**, unsigned int, char*);
+void deallocateRoot(BinarySearchTree**);
+PhotoInfo** fromBSTToVector(BinarySearchTree*, float, int*);
+int searchNumberOfPhotos(BinarySearchTree*, float);
+void populateVector(BinarySearchTree*, PhotoInfo**, int*, float);
+void printVector(PhotoInfo**, int*);
+void displayPhotosAfterDate(BinarySearchTree*, char*);
 
 void main()
 {
@@ -43,123 +45,151 @@ void main()
 	BinarySearchTree* BST = NULL;
 	if (pFile)
 	{
-		unsigned int idFotografie;
-		char oras[128];
-		char data[128];
-		float rezolutie;
+		unsigned int photoId;
+		char city[128];
+		char date[128];
+		float resolution;
 		char* token;
 		char delimiter[] = ",\n";
 		char buffer[128];
+
+		// Read data from file and insert into BST
 		while (fgets(buffer, sizeof(buffer), pFile))
 		{
 			token = strtok(buffer, delimiter);
-			idFotografie = atoi(token);
+			photoId = atoi(token);
+
 			token = strtok(NULL, delimiter);
-			strcpy(oras, token);
+			strcpy(city, token);
+
 			token = strtok(NULL, delimiter);
-			strcpy(data, token);
+			strcpy(date, token);
+
 			token = strtok(NULL, delimiter);
-			rezolutie = atof(token);
-			FotografieInfo* fotografie = createFotoGrafie(idFotografie, oras, data, rezolutie);
-			insertBST(&BST, fotografie);
+			resolution = atof(token);
+
+			PhotoInfo* photo = createPhoto(photoId, city, date, resolution);
+			insertBST(&BST, photo);
 		}
-		//.1
-		inordine(BST);
 
-		//.2
-		int nrFotografii = searchForFotosInSameTown(BST, "Giurgiu");
-		printf("Numar fotografii in orasul Giurgiu : %d\n", nrFotografii);
+		// 1) In-order display
+		inorder(BST);
 
-		//.3
-		modificareData(&BST, 23, "2023-07-07");
-		printf("Dupa modificare data:\n\n");
-		inordine(BST);
+		// 2) Search the number of photos taken in city "Giurgiu"
+		{
+			int photoCount = searchForPhotosInCity(BST, "Giurgiu");
+			printf("Number of photos in the city Giurgiu: %d\n", photoCount);
+		}
 
-		//.4
-		printf("Dupa dezalocare radacina:\n\n");
-		dezalocareRadacina(&BST);
-		inordine(BST);
+		// 3) Modify date of the photo with a certain ID
+		{
+			modifyDate(&BST, 23, "2023-07-07");
+			printf("After modifying date:\n\n");
+			inorder(BST);
+		}
 
-		//.5
-		int* size=(int*)malloc(sizeof(int));
-		size[0] = 0;
-		FotografieInfo** vector = fromBSTToVector(BST, 120,size);
-		printVector(vector, size);
+		// 4) Deallocate root node (example operation)
+		{
+			printf("After deallocating root:\n\n");
+			deallocateRoot(&BST);
+			inorder(BST);
+		}
 
-		//.6 Sa se afiseze doar fotografiile executate dupa data 2024-07-05
-		printf("Fotografii peste data 2024-07-05:\n\n");
-		displayFotoOnlyAboveSpecifiedDate(BST, "2024-07-05");
+		// 5) Extract photos of a certain resolution into a vector
+		{
+			int* size = (int*)malloc(sizeof(int));
+			size[0] = 0;
+			PhotoInfo** vector = fromBSTToVector(BST, 120, size);
+			printVector(vector, size);
+		}
 
+		// 6) Display only photos taken after the date "2024-07-05"
+		{
+			printf("Photos taken after 2024-07-05:\n\n");
+			displayPhotosAfterDate(BST, "2024-07-05");
+		}
 	}
 }
-FotografieInfo* createFotoGrafie(unsigned int idFotografie,char* oras,char* data,float rezolutie)
+
+// Creates a new Photo
+PhotoInfo* createPhoto(unsigned int photoId, char* city, char* date, float resolution)
 {
-	FotografieInfo* foto = (FotografieInfo*)malloc(sizeof(FotografieInfo));
-	foto->data = (char*)malloc(strlen(data) + 1);
-	foto->oras = (char*)malloc(strlen(oras) + 1);
-	strcpy(foto->data, data);
-	strcpy(foto->oras, oras);
-	foto->idFotografie = idFotografie;
-	foto->rezolutie = rezolutie;
-	return foto;
+	PhotoInfo* photo = (PhotoInfo*)malloc(sizeof(PhotoInfo));
+	photo->date = (char*)malloc(strlen(date) + 1);
+	photo->city = (char*)malloc(strlen(city) + 1);
+	strcpy(photo->date, date);
+	strcpy(photo->city, city);
+	photo->photoId = photoId;
+	photo->resolution = resolution;
+	return photo;
 }
-void insertBST(BinarySearchTree** BST, FotografieInfo* foto)
+
+// Inserts a photo into BST by ID
+void insertBST(BinarySearchTree** BST, PhotoInfo* photo)
 {
 	if (*BST == NULL)
 	{
-		*BST = createNode(foto);
+		*BST = createNode(photo);
 	}
 	else
 	{
-		if ((*BST)->info->idFotografie > foto->idFotografie)
+		if ((*BST)->info->photoId > photo->photoId)
 		{
-			insertBST(&(*BST)->left, foto);
+			insertBST(&(*BST)->left, photo);
 		}
-		else if ((*BST)->info->idFotografie < foto->idFotografie)
+		else if ((*BST)->info->photoId < photo->photoId)
 		{
-			insertBST(&(*BST)->right, foto);
+			insertBST(&(*BST)->right, photo);
 		}
 		else
 		{
-			FotografieInfo* aux = (*BST)->info;
-			(*BST)->info = foto;
-			free(aux->oras);
-			free(aux->data);
+			PhotoInfo* aux = (*BST)->info;
+			(*BST)->info = photo;
+			free(aux->city);
+			free(aux->date);
 			free(aux);
 		}
 	}
 }
-BinarySearchTree* createNode(FotografieInfo* foto)
+
+// Creates a BST node
+BinarySearchTree* createNode(PhotoInfo* photo)
 {
 	BinarySearchTree* bst = (BinarySearchTree*)malloc(sizeof(BinarySearchTree));
-	bst->info = foto;
+	bst->info = photo;
 	bst->left = bst->right = NULL;
 	return bst;
 }
-void inordine(BinarySearchTree* BST)
+
+// In-order traversal
+void inorder(BinarySearchTree* BST)
 {
 	if (BST)
 	{
-		inordine(BST->left);
-		displayFoto(BST->info);
-		inordine(BST->right);
+		inorder(BST->left);
+		displayPhoto(BST->info);
+		inorder(BST->right);
 	}
 }
-void displayFoto(FotografieInfo* foto)
+
+// Displays one photo
+void displayPhoto(PhotoInfo* photo)
 {
-	printf("%d -> %s -> %s -> %.2f\n", foto->idFotografie, foto->oras, foto->data, foto->rezolutie);
+	printf("%d -> %s -> %s -> %.2f\n", photo->photoId, photo->city, photo->date, photo->resolution);
 }
-int searchForFotosInSameTown(BinarySearchTree* BST, char* oras)
+
+// Searches for photos in a specified city
+int searchForPhotosInCity(BinarySearchTree* BST, char* city)
 {
 	if (BST)
 	{
-		if (strcmp(BST->info->oras, oras) == 0)
+		if (strcmp(BST->info->city, city) == 0)
 		{
-			return 1 + searchForFotosInSameTown(BST->left, oras) + searchForFotosInSameTown(BST->right, oras);
+			return 1 + searchForPhotosInCity(BST->left, city) + searchForPhotosInCity(BST->right, city);
 		}
 		else
 		{
-			return searchForFotosInSameTown(BST->left, oras) + searchForFotosInSameTown(BST->right, oras);
+			return searchForPhotosInCity(BST->left, city) + searchForPhotosInCity(BST->right, city);
 		}
 	}
 	else
@@ -167,28 +197,33 @@ int searchForFotosInSameTown(BinarySearchTree* BST, char* oras)
 		return 0;
 	}
 }
-void modificareData(BinarySearchTree** BST, unsigned int idFotografie, char* nouaData)
+
+// Modifies the date of the photo with the given ID
+void modifyDate(BinarySearchTree** BST, unsigned int photoId, char* newDate)
 {
 	if (*BST)
 	{
-		if ((*BST)->info->idFotografie == idFotografie)
+		if ((*BST)->info->photoId == photoId)
 		{
-			free((*BST)->info->data);
-			(*BST)->info->data = (char*)malloc(strlen(nouaData) + 1);
-			strcpy((*BST)->info->data, nouaData);
+			free((*BST)->info->date);
+			(*BST)->info->date = (char*)malloc(strlen(newDate) + 1);
+			strcpy((*BST)->info->date, newDate);
 		}
 		else
 		{
-			modificareData(&(*BST)->left, idFotografie, nouaData);
-			modificareData(&(*BST)->right, idFotografie, nouaData);
+			modifyDate(&(*BST)->left, photoId, newDate);
+			modifyDate(&(*BST)->right, photoId, newDate);
 		}
 	}
 }
-void dezalocareRadacina(BinarySearchTree** BST)
+
+// Deallocates the root node and re-links children
+void deallocateRoot(BinarySearchTree** BST)
 {
 	BinarySearchTree* oldRoot = *BST;
-	BinarySearchTree* descDreapta = (*BST)->right;
-	BinarySearchTree* descDreaptaStanga = (*BST)->right->left;
+	BinarySearchTree* rightChild = (*BST)->right;
+	BinarySearchTree* rightChildLeft = (*BST)->right->left;
+
 	if ((*BST)->left != NULL)
 	{
 		BinarySearchTree* aux = (*BST)->left->right;
@@ -196,34 +231,38 @@ void dezalocareRadacina(BinarySearchTree** BST)
 		{
 			aux = aux->right;
 		}
-		aux = descDreapta;
-		descDreapta->left = (*BST)->left;
+		aux = rightChild;
+		rightChild->left = (*BST)->left;
 	}
-	*BST = descDreapta;
-	free(oldRoot->info->data);
-	free(oldRoot->info->oras);
+	*BST = rightChild;
+	free(oldRoot->info->date);
+	free(oldRoot->info->city);
 	free(oldRoot->info);
 	free(oldRoot);
 }
-FotografieInfo** fromBSTToVector(BinarySearchTree* BST, float rezolutie, int* size)
+
+// Creates a vector of photos from the BST that match a certain resolution
+PhotoInfo** fromBSTToVector(BinarySearchTree* BST, float resolution, int* size)
 {
-	int n =searchNumberOfFoto(BST, rezolutie);
-	FotografieInfo** vector =(FotografieInfo**)malloc(sizeof(FotografieInfo*)*n);
-	memset(vector, 0, sizeof(FotografieInfo*) * n);
-	populateVector(BST, vector, size, rezolutie);
+	int n = searchNumberOfPhotos(BST, resolution);
+	PhotoInfo** vector = (PhotoInfo**)malloc(sizeof(PhotoInfo*) * n);
+	memset(vector, 0, sizeof(PhotoInfo*) * n);
+	populateVector(BST, vector, size, resolution);
 	return vector;
 }
-int searchNumberOfFoto(BinarySearchTree* BST, float rezolutie)
+
+// Searches how many photos of a specified resolution are in the BST
+int searchNumberOfPhotos(BinarySearchTree* BST, float resolution)
 {
 	if (BST)
 	{
-		if (BST->info->rezolutie == rezolutie)
+		if (BST->info->resolution == resolution)
 		{
-			return 1 + searchNumberOfFoto(BST->left, rezolutie) + searchNumberOfFoto(BST->right, rezolutie);
+			return 1 + searchNumberOfPhotos(BST->left, resolution) + searchNumberOfPhotos(BST->right, resolution);
 		}
 		else
 		{
-			return searchNumberOfFoto(BST->left, rezolutie) + searchNumberOfFoto(BST->right, rezolutie);
+			return searchNumberOfPhotos(BST->left, resolution) + searchNumberOfPhotos(BST->right, resolution);
 		}
 	}
 	else
@@ -231,80 +270,86 @@ int searchNumberOfFoto(BinarySearchTree* BST, float rezolutie)
 		return 0;
 	}
 }
-void populateVector(BinarySearchTree* BST, FotografieInfo** vector, int* size, float rezolutie)
+
+// Populates the vector with photos that match a given resolution
+void populateVector(BinarySearchTree* BST, PhotoInfo** vector, int* size, float resolution)
 {
 	if (BST)
 	{
-		if (BST->info->rezolutie == rezolutie)
+		if (BST->info->resolution == resolution)
 		{
-			vector[size[0]] = createFotoGrafie(BST->info->idFotografie, BST->info->oras, BST->info->data, BST->info->rezolutie);
+			vector[size[0]] = createPhoto(BST->info->photoId, BST->info->city, BST->info->date, BST->info->resolution);
 			size[0]++;
 		}
-		populateVector(BST->left, vector, size, rezolutie);
-		populateVector(BST->right, vector, size, rezolutie);
+		populateVector(BST->left, vector, size, resolution);
+		populateVector(BST->right, vector, size, resolution);
 	}
 }
-void printVector(FotografieInfo** vector, int* size)
+
+// Prints a vector of photos
+void printVector(PhotoInfo** vector, int* size)
 {
 	if (vector)
 	{
 		printf("Vector:\n\n");
 		for (int i = 0; i < size[0]; i++)
 		{
-			displayFoto(vector[i]);
+			displayPhoto(vector[i]);
 		}
 	}
 }
-void displayFotoOnlyAboveSpecifiedDate(BinarySearchTree* BST, char* prag)
+
+// Displays only photos after a specified date
+void displayPhotosAfterDate(BinarySearchTree* BST, char* threshold)
 {
 	if (BST)
 	{
 		char delimiter[] = "-\0";
 		char* token;
 		char buffer1[128];
-		strcpy(buffer1, prag);
-		//-------------------------------
+		strcpy(buffer1, threshold);
+
 		token = strtok(buffer1, delimiter);
-		int yp = atoi(token);
+		int yThreshold = atoi(token);
 		token = strtok(NULL, delimiter);
-		int mp = atoi(token);
+		int mThreshold = atoi(token);
 		token = strtok(NULL, delimiter);
-		int dp = atoi(token);
-		//-------------------------------
+		int dThreshold = atoi(token);
+
 		memset(buffer1, 0, 128);
-		strcpy(buffer1, BST->info->data);
+		strcpy(buffer1, BST->info->date);
 		token = strtok(buffer1, delimiter);
 		int y = atoi(token);
 		token = strtok(NULL, delimiter);
 		int m = atoi(token);
 		token = strtok(NULL, delimiter);
 		int d = atoi(token);
-		//--------------------------------
-		if (y >= yp)
+
+		if (y >= yThreshold)
 		{
-			if (y > yp)
+			if (y > yThreshold)
 			{
-				displayFoto(BST->info);
+				displayPhoto(BST->info);
 			}
 			else
 			{
-				if (m >= mp)
+				if (m >= mThreshold)
 				{
-					if (m > mp)
+					if (m > mThreshold)
 					{
-						displayFoto(BST->info);
+						displayPhoto(BST->info);
 					}
 					else
 					{
-						if (d > dp)
+						if (d > dThreshold)
 						{
-							displayFoto(BST->info);
+							displayPhoto(BST->info);
 						}
 					}
 				}
 			}
 		}
-		displayFotoOnlyAboveSpecifiedDate(BST->left, prag);
-		displayFotoOnlyAboveSpecifiedDate(BST->right, prag);
+		displayPhotosAfterDate(BST->left, threshold);
+		displayPhotosAfterDate(BST->right, threshold);
 	}
 }
