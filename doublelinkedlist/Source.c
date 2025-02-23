@@ -1,129 +1,141 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
-#include<string.h>
-#include<stdlib.h>
-#include<malloc.h>
+#include <string.h>
+#include <stdlib.h>
+#include <malloc.h>
 #define INITIAL_SIZE 4
 
-struct Vagon
+struct Wagon
 {
-	int nrVagon;
-	char* firmaVagon;
-	int nrBileteVandute;
-	int capacitateVagon;
+	int wagonNumber;
+	char* wagonCompany;
+	int soldTickets;
+	int wagonCapacity;
 };
-typedef struct Vagon VagonInfo;
+typedef struct Wagon WagonInfo;
 
 struct Node
 {
 	struct Node* prev;
 	struct Node* next;
-	VagonInfo* info;
+	WagonInfo* info;
 };
 typedef struct Node ListNode;
 
 struct Pqueue
 {
-	VagonInfo** vagoane;
+	WagonInfo** wagons;
 	int qsize;
 	int currentIndex;
 };
 typedef struct Pqueue PrioQueue;
 
-//usefull info memory
-VagonInfo* createVagon(int,char*,int,int);
-ListNode* createNode(VagonInfo*);
+// Function prototypes
+WagonInfo* createWagon(int, char*, int, int);
+ListNode* createNode(WagonInfo*);
 ListNode* insertNodeToHead(ListNode*, ListNode*);
 void displayDoubleLinkedListHeadToTail(ListNode*);
 void displayDoubleLinkedListTailToHead(ListNode*);
-void stergereVagonMinim(ListNode*);
-int searchMin(ListNode*);
-PrioQueue convertFromListToQueue(ListNode*, PrioQueue);
-void enqueue(PrioQueue*, VagonInfo*);
-void reHeapUp(PrioQueue*, int);
-float gradDeOcupare(VagonInfo*);
+void deleteMinWagon(ListNode*);
+int searchMinTickets(ListNode*);
+PrioQueue listToPriorityQueue(ListNode*, PrioQueue);
+void enqueue(PrioQueue*, WagonInfo*);
+void reheapUp(PrioQueue*, int);
+float occupancyRate(WagonInfo*);
 void displayQueue(PrioQueue);
 PrioQueue changeNumberOfTickets(PrioQueue, int, int);
-void reHeapDown(PrioQueue*, int);
-VagonInfo* dequeue(PrioQueue*);
+void reheapDown(PrioQueue*, int);
+WagonInfo* dequeue(PrioQueue*);
 
 void main()
 {
 	FILE* pfile = fopen("Data.txt", "r");
-	ListNode* DoubleLinkedList = NULL;
-	PrioQueue queue = { .vagoane = NULL , .qsize = 0 , .currentIndex = 0 };
+	ListNode* doubleLinkedList = NULL;
+	PrioQueue queue = { .wagons = NULL, .qsize = 0, .currentIndex = 0 };
+
 	if (pfile)
 	{
 		char* token;
 		char delimiter[] = ",\n";
 		char lineBuffer[128];
-		int nrVagon;
-		char firmaVagon[128];
-		int nrBileteVandute;
-		int capacitateVagon;
+		int wagonNumber;
+		char wagonCompany[128];
+		int soldTickets;
+		int wagonCapacity;
+
 		while (fgets(lineBuffer, sizeof(lineBuffer), pfile))
 		{
 			token = strtok(lineBuffer, delimiter);
-			nrVagon = atoi(token);
+			wagonNumber = atoi(token);
+
 			token = strtok(NULL, delimiter);
-			strcpy(firmaVagon, token);
+			strcpy(wagonCompany, token);
+
 			token = strtok(NULL, delimiter);
-			nrBileteVandute = atoi(token);
+			soldTickets = atoi(token);
+
 			token = strtok(NULL, delimiter);
-			capacitateVagon = atoi(token);
-			VagonInfo* vagon = createVagon(nrVagon,firmaVagon ,nrBileteVandute,capacitateVagon);
-			ListNode* node = createNode(vagon);
-			DoubleLinkedList = insertNodeToHead(DoubleLinkedList, node);
+			wagonCapacity = atoi(token);
+
+			WagonInfo* wagon = createWagon(wagonNumber, wagonCompany, soldTickets, wagonCapacity);
+			ListNode* node = createNode(wagon);
+			doubleLinkedList = insertNodeToHead(doubleLinkedList, node);
 		}
-		//2.
-		displayDoubleLinkedListHeadToTail(DoubleLinkedList);
-		displayDoubleLinkedListTailToHead(DoubleLinkedList);
 
-		//3.
-		stergereVagonMinim(DoubleLinkedList);
-		printf("Dupa stergere minim :\n-----------------------\n");
-		displayDoubleLinkedListHeadToTail(DoubleLinkedList);
-		displayDoubleLinkedListTailToHead(DoubleLinkedList);
+		// 2. Display the double linked list (head-to-tail and tail-to-head)
+		displayDoubleLinkedListHeadToTail(doubleLinkedList);
+		displayDoubleLinkedListTailToHead(doubleLinkedList);
 
-		//4.
-		queue=convertFromListToQueue(DoubleLinkedList, queue);
+		// 3. Delete the wagon with the minimum number of sold tickets
+		deleteMinWagon(doubleLinkedList);
+		printf("After deleting the min:\n-----------------------\n");
+		displayDoubleLinkedListHeadToTail(doubleLinkedList);
+		displayDoubleLinkedListTailToHead(doubleLinkedList);
+
+		// 4. Convert from double linked list to a priority queue
+		queue = listToPriorityQueue(doubleLinkedList, queue);
 		displayQueue(queue);
 
-		//.5
-		queue=changeNumberOfTickets(queue, 47, 180);
+		// 5. Modify the number of tickets for wagonNumber=47
+		queue = changeNumberOfTickets(queue, 47, 180);
 		displayQueue(queue);
 
-		//dequeue
-		VagonInfo* vagon = dequeue(&queue);
-		printf("Vagon extras :%d -> %s -> %d -> %d\n", vagon->nrVagon, vagon->firmaVagon, vagon->nrBileteVandute, vagon->capacitateVagon);
+		// Dequeue an element (pop from priority queue)
+		WagonInfo* wagon = dequeue(&queue);
+		printf("Extracted wagon: %d -> %s -> %d -> %d\n",
+		       wagon->wagonNumber, wagon->wagonCompany,
+		       wagon->soldTickets, wagon->wagonCapacity);
 		displayQueue(queue);
 	}
 }
-VagonInfo* createVagon(int nrVagon, char* firmaVagon, int nrBileteVandute, int capacitateVagon)
+
+WagonInfo* createWagon(int wagonNumber, char* wagonCompany, int soldTickets, int wagonCapacity)
 {
-	VagonInfo* vagon = (VagonInfo*)malloc(sizeof(VagonInfo));
-	vagon->firmaVagon = (char*)malloc(strlen(firmaVagon) + 1);
-	vagon->capacitateVagon = capacitateVagon;
-	vagon->nrVagon = nrVagon;
-	vagon->nrBileteVandute = nrBileteVandute;
-	strcpy(vagon->firmaVagon, firmaVagon);
-	return vagon;
+	WagonInfo* w = (WagonInfo*)malloc(sizeof(WagonInfo));
+	w->wagonCompany = (char*)malloc(strlen(wagonCompany) + 1);
+	w->wagonNumber = wagonNumber;
+	w->soldTickets = soldTickets;
+	w->wagonCapacity = wagonCapacity;
+	strcpy(w->wagonCompany, wagonCompany);
+	return w;
 }
-ListNode* createNode(VagonInfo* vagon)
+
+ListNode* createNode(WagonInfo* wagon)
 {
 	ListNode* node = (ListNode*)malloc(sizeof(ListNode));
-	node->info = vagon;
+	node->info = wagon;
 	node->next = node->prev = NULL;
 	return node;
 }
-ListNode* insertNodeToHead(ListNode* DoubleLinkedList, ListNode* node)
+
+ListNode* insertNodeToHead(ListNode* doubleLinkedList, ListNode* node)
 {
-	if (DoubleLinkedList)
+	if (doubleLinkedList)
 	{
-		node->next = DoubleLinkedList;
-		node->prev = DoubleLinkedList->prev;
-		DoubleLinkedList->prev->next = node;
-		DoubleLinkedList->prev = node;
+		node->next = doubleLinkedList;
+		node->prev = doubleLinkedList->prev;
+		doubleLinkedList->prev->next = node;
+		doubleLinkedList->prev = node;
 	}
 	else
 	{
@@ -131,156 +143,192 @@ ListNode* insertNodeToHead(ListNode* DoubleLinkedList, ListNode* node)
 	}
 	return node;
 }
-void displayDoubleLinkedListHeadToTail(ListNode* DoubleLinkedList)
+
+void displayDoubleLinkedListHeadToTail(ListNode* doubleLinkedList)
 {
-	ListNode* aux = DoubleLinkedList;
-	printf("Afisare Head to Tail:\n\n");
+	ListNode* aux = doubleLinkedList;
+	printf("Display head-to-tail:\n\n");
+	if (!aux) return;
+
 	do
 	{
-		printf("%d -> %s -> %d -> %d\n" , aux->info->nrVagon , aux->info->firmaVagon , aux->info->nrBileteVandute , aux->info->capacitateVagon);
+		printf("%d -> %s -> %d -> %d\n",
+		       aux->info->wagonNumber,
+		       aux->info->wagonCompany,
+		       aux->info->soldTickets,
+		       aux->info->wagonCapacity);
 		aux = aux->next;
-	} while (aux != DoubleLinkedList);
+	} while (aux != doubleLinkedList);
 }
-void displayDoubleLinkedListTailToHead(ListNode* DoubleLinkedList)
+
+void displayDoubleLinkedListTailToHead(ListNode* doubleLinkedList)
 {
-	ListNode* aux = DoubleLinkedList;
-	printf("Afisare Tail to Head:\n\n");
+	ListNode* aux = doubleLinkedList;
+	printf("Display tail-to-head:\n\n");
+	if (!aux) return;
+
 	do
 	{
-		printf("%d -> %s -> %d -> %d\n", aux->prev->info->nrVagon, aux->prev->info->firmaVagon, aux->prev->info->nrBileteVandute, aux->prev->info->capacitateVagon);
+		printf("%d -> %s -> %d -> %d\n",
+		       aux->prev->info->wagonNumber,
+		       aux->prev->info->wagonCompany,
+		       aux->prev->info->soldTickets,
+		       aux->prev->info->wagonCapacity);
 		aux = aux->prev;
-	} while (aux != DoubleLinkedList);
+	} while (aux != doubleLinkedList);
 }
-int searchMin(ListNode* DoubleLinkedList)
+
+int searchMinTickets(ListNode* doubleLinkedList)
 {
-	int minim = DoubleLinkedList->info->nrBileteVandute;
-	ListNode* aux = DoubleLinkedList->next;
+	int minValue = doubleLinkedList->info->soldTickets;
+	ListNode* aux = doubleLinkedList->next;
+
 	do
 	{
-		if (aux->info->nrBileteVandute < minim)
+		if (aux->info->soldTickets < minValue)
 		{
-			minim = aux->info->nrBileteVandute;
+			minValue = aux->info->soldTickets;
 		}
 		aux = aux->next;
-	} while (aux != DoubleLinkedList);
-	return minim;
+	} while (aux != doubleLinkedList);
+
+	return minValue;
 }
-void stergereVagonMinim(ListNode* DoubleLinkedList)
+
+void deleteMinWagon(ListNode* doubleLinkedList)
 {
-	if (DoubleLinkedList)
+	if (doubleLinkedList)
 	{
-		int nrMinim = searchMin(DoubleLinkedList);
-		ListNode* aux = DoubleLinkedList;
+		int minTickets = searchMinTickets(doubleLinkedList);
+		ListNode* aux = doubleLinkedList;
+
 		do
 		{
-			ListNode* auxa = aux;
+			ListNode* current = aux;
 			aux = aux->next;
-			if (auxa->info->nrBileteVandute == nrMinim)
+			if (current->info->soldTickets == minTickets)
 			{
-				auxa->prev->next = auxa->next;
-				auxa->next->prev = auxa->prev;
-				free(auxa->info->firmaVagon);
-				free(auxa->info);
-				free(auxa);
+				current->prev->next = current->next;
+				current->next->prev = current->prev;
+				free(current->info->wagonCompany);
+				free(current->info);
+				free(current);
 			}
-		} while (aux != DoubleLinkedList);
+		} while (aux != doubleLinkedList);
 	}
 }
-PrioQueue convertFromListToQueue(ListNode* DoubleLinkedList, PrioQueue queue)
+
+PrioQueue listToPriorityQueue(ListNode* doubleLinkedList, PrioQueue queue)
 {
-	if (DoubleLinkedList)
+	if (doubleLinkedList)
 	{
-		ListNode* aux = DoubleLinkedList;
+		ListNode* aux = doubleLinkedList;
 		do
 		{
 			enqueue(&queue, aux->info);
 			aux = aux->next;
-		}while(aux!=DoubleLinkedList);
+		} while (aux != doubleLinkedList);
 	}
 	return queue;
 }
-void enqueue(PrioQueue* queue, VagonInfo* vagon)
+
+void enqueue(PrioQueue* queue, WagonInfo* wagon)
 {
-	if (queue->vagoane == NULL)
+	if (queue->wagons == NULL)
 	{
-		queue->vagoane = (VagonInfo**)malloc(sizeof(VagonInfo*) * INITIAL_SIZE);
-		memset(queue->vagoane, 0, sizeof(VagonInfo*) * INITIAL_SIZE);
+		queue->wagons = (WagonInfo**)malloc(sizeof(WagonInfo*) * INITIAL_SIZE);
+		memset(queue->wagons, 0, sizeof(WagonInfo*) * INITIAL_SIZE);
 		queue->qsize = INITIAL_SIZE;
 	}
-	queue->vagoane[queue->currentIndex] = createVagon(vagon->nrVagon , vagon->firmaVagon , vagon->nrBileteVandute , vagon->capacitateVagon);
-	reHeapUp(queue, queue->currentIndex);
+	queue->wagons[queue->currentIndex] = createWagon(wagon->wagonNumber,
+	                                                  wagon->wagonCompany,
+	                                                  wagon->soldTickets,
+	                                                  wagon->wagonCapacity);
+	reheapUp(queue, queue->currentIndex);
 	queue->currentIndex++;
 }
-void reHeapUp(PrioQueue* queue, int curentIndex)
+
+void reheapUp(PrioQueue* queue, int currentIndex)
 {
-	if (curentIndex > 0)
+	if (currentIndex > 0)
 	{
-		int parentIndex = curentIndex - 1;
-		if (queue->vagoane[parentIndex]->nrBileteVandute> queue->vagoane[curentIndex]->nrBileteVandute)
+		int parentIndex = currentIndex - 1;
+		if (queue->wagons[parentIndex]->soldTickets >
+		    queue->wagons[currentIndex]->soldTickets)
 		{
-			VagonInfo* aux = queue->vagoane[parentIndex];
-			queue->vagoane[parentIndex] = queue->vagoane[curentIndex];
-			queue->vagoane[curentIndex] = aux;
-			reHeapUp(queue, parentIndex);
+			WagonInfo* aux = queue->wagons[parentIndex];
+			queue->wagons[parentIndex] = queue->wagons[currentIndex];
+			queue->wagons[currentIndex] = aux;
+			reheapUp(queue, parentIndex);
 		}
 	}
 }
-float gradDeOcupare(VagonInfo* vagon)
+
+float occupancyRate(WagonInfo* wagon)
 {
-	float a = vagon->nrBileteVandute / vagon->capacitateVagon;
-	return a;
+	return (float)wagon->soldTickets / wagon->wagonCapacity;
 }
+
 void displayQueue(PrioQueue queue)
 {
-	printf("Coada de prioritati:\n");
+	printf("Priority queue:\n");
 	for (int i = 0; i < queue.currentIndex; i++)
 	{
-		printf("%d -> %s -> %d -> %d\n", queue.vagoane[i]->nrVagon, queue.vagoane[i]->firmaVagon, queue.vagoane[i]->nrBileteVandute, queue.vagoane[i]->capacitateVagon);
+		printf("%d -> %s -> %d -> %d\n",
+		       queue.wagons[i]->wagonNumber,
+		       queue.wagons[i]->wagonCompany,
+		       queue.wagons[i]->soldTickets,
+		       queue.wagons[i]->wagonCapacity);
 	}
 }
-PrioQueue changeNumberOfTickets(PrioQueue queue, int numarVagon, int nrNouBilete)
+
+PrioQueue changeNumberOfTickets(PrioQueue queue, int wagonNumber, int newTickets)
 {
 	for (int i = 0; i < queue.qsize; i++)
 	{
-		if (queue.vagoane[i]->nrVagon == numarVagon)
+		if (queue.wagons[i] != NULL &&
+		    queue.wagons[i]->wagonNumber == wagonNumber)
 		{
-			int nrVechiBilete = queue.vagoane[i]->nrBileteVandute;
-			queue.vagoane[i]->nrBileteVandute = nrNouBilete;
-			if (nrNouBilete < nrVechiBilete)
+			int oldTickets = queue.wagons[i]->soldTickets;
+			queue.wagons[i]->soldTickets = newTickets;
+			if (newTickets < oldTickets)
 			{
-				reHeapUp(&queue, i);
+				reheapUp(&queue, i);
 			}
 			else
 			{
-				reHeapDown(&queue, i);
+				reheapDown(&queue, i);
 			}
 		}
 	}
 	return queue;
 }
-void reHeapDown(PrioQueue* queue, int parentIndex)
+
+void reheapDown(PrioQueue* queue, int parentIndex)
 {
-	if (parentIndex < queue->currentIndex-1)
+	if (parentIndex < queue->currentIndex - 1)
 	{
-		int curentIndex = parentIndex + 1;
-		if (queue->vagoane[parentIndex]->nrBileteVandute > queue->vagoane[curentIndex]->nrBileteVandute)
+		int childIndex = parentIndex + 1;
+		if (queue->wagons[parentIndex]->soldTickets >
+		    queue->wagons[childIndex]->soldTickets)
 		{
-			VagonInfo* aux = queue->vagoane[parentIndex];
-			queue->vagoane[parentIndex] = queue->vagoane[curentIndex];
-			queue->vagoane[curentIndex] = aux;
-			reHeapDown(queue, curentIndex);
+			WagonInfo* aux = queue->wagons[parentIndex];
+			queue->wagons[parentIndex] = queue->wagons[childIndex];
+			queue->wagons[childIndex] = aux;
+			reheapDown(queue, childIndex);
 		}
 	}
 }
-VagonInfo* dequeue(PrioQueue* queue)
+
+WagonInfo* dequeue(PrioQueue* queue)
 {
-	if (queue->vagoane[0] != NULL)
+	if (queue->wagons[0] != NULL)
 	{
-		VagonInfo* result = queue->vagoane[0];
-		queue->vagoane[0] = queue->vagoane[queue->currentIndex - 1];
-		queue->vagoane[queue->currentIndex - 1] = NULL;
+		WagonInfo* result = queue->wagons[0];
+		queue->wagons[0] = queue->wagons[queue->currentIndex - 1];
+		queue->wagons[queue->currentIndex - 1] = NULL;
 		queue->currentIndex--;
-		reHeapDown(queue, 0);
+		reheapDown(queue, 0);
 		return result;
 	}
 	else
@@ -288,4 +336,3 @@ VagonInfo* dequeue(PrioQueue* queue)
 		return NULL;
 	}
 }
-
