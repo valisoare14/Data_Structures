@@ -7,7 +7,7 @@ This C program implements a **Binary Search Tree (BST)** for managing hotel rese
 
 ## Total Payment Calculation:
 - The total amount due for all reservations belonging to a specific client, identified as **"Popescu Razvan"**, is calculated.
-  The entire tree is traversed, and the `suma_de_plata` value from each node with the matching `client_name` is summed.
+  The entire tree is traversed, and the `paymentAmount` value from each node with the matching `client_name` is summed.
 
 ## Number of Nodes per Level:
 - The number of nodes present at each level of the tree is calculated.
