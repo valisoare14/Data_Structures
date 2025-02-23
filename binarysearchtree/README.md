@@ -12,11 +12,11 @@ The function `searchForFotosInSameTown` traverses the tree and counts the nodes 
 
 ## Modifying Photo Date:
 Changes the date of a specified photo by its ID.
-The function `modificareData` searches for the node with the specified ID and updates the date of that photo.
+The function `modifyDate` searches for the node with the specified ID and updates the date of that photo.
 
 ## Deallocating the Root:
 Removes the root of the binary search tree and adjusts the tree structure so that it remains a valid BST.
-The function `dezalocareRadacina` handles this process.
+The function `deallocateRoot` handles this process.
 
 ## Converting BST to a Vector:
 Transforms the binary search tree into a vector, adding only the photos that meet a specified resolution criterion.
