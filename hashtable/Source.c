@@ -1,34 +1,38 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include<stdio.h>
-#include<string.h>
-#include<malloc.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <malloc.h>
+#include <stdlib.h>
 #define HT_INITIAL_SIZE 8
 
-struct Garantie
+// Data structure describing a warranty
+struct Warranty
 {
-	char* denumire;
-	unsigned int nr_luni;
-	unsigned char esteElectronica;
+	char* name;
+	unsigned int months;
+	unsigned char isElectronic;
 	char* service;
 };
-typedef struct Garantie GarantieInfo;
+typedef struct Warranty WarrantyInfo;
 
+// A node in the singly circular linked list for each bucket
 struct Node
 {
 	struct Node* next;
-	GarantieInfo* info;
+	WarrantyInfo* info;
 };
 typedef struct Node StructNode;
 
+// A node in the doubly circular linked list
 struct DoubleLinkedList
 {
-	GarantieInfo* info;
+	WarrantyInfo* info;
 	struct DoubleLinkedList* next;
 	struct DoubleLinkedList* prev;
 };
 typedef struct DoubleLinkedList DoubleLinkedList;
 
+// Hash table structure
 struct HashTable
 {
 	StructNode** buckets;
@@ -36,86 +40,97 @@ struct HashTable
 };
 typedef struct HashTable HashTable;
 
-//memory
-GarantieInfo* createGarantie(char* , unsigned int , unsigned char , char* );
-void populateHT(HashTable*, GarantieInfo*);
-int hashFunction(char* , int );
-StructNode* createNode(GarantieInfo* );
-void putNode(StructNode** , StructNode* );
-int searchForNumberOfGarantiiOnSpecifiedService(HashTable, char*);
-void extindereGarantii(HashTable*, int);
-void printHT(HashTable );
-void displayGarantie(GarantieInfo* );
-DoubleLinkedList* createDoubleLinkedListNode(GarantieInfo*);
+// Prototypes
+WarrantyInfo* createWarranty(char*, unsigned int, unsigned char, char*);
+void populateHT(HashTable*, WarrantyInfo*);
+int hashFunction(char*, int);
+StructNode* createNode(WarrantyInfo*);
+void putNode(StructNode**, StructNode*);
+int searchForNumberOfWarrantiesOnService(HashTable, char*);
+void extendWarranties(HashTable*, int);
+void printHT(HashTable);
+void displayWarranty(WarrantyInfo*);
+DoubleLinkedList* createDoubleLinkedListNode(WarrantyInfo*);
 DoubleLinkedList* convertHTToDoubleLinkedList(HashTable, int);
 DoubleLinkedList* insertNodeIntoDoubleLinkedList(DoubleLinkedList*, DoubleLinkedList*);
 void displayDoubleLinkedList(DoubleLinkedList*);
-void modificareService(HashTable*, char*, char*);
+void modifyService(HashTable*, char*, char*);
 void moveNode(StructNode**, StructNode*);
-void dezlipireDeStructura(StructNode**, StructNode*);
+void detachStructure(StructNode**, StructNode*);
 
-void main()
+int main()
 {
 	FILE* pFile = fopen("Data.txt", "r");
-	HashTable HT = { .buckets = NULL , .size = 0 };
-	DoubleLinkedList* listaDubla = NULL;
+	HashTable HT = { .buckets = NULL, .size = 0 };
+	DoubleLinkedList* doubleList = NULL;
+
 	if (pFile)
 	{
-		char denumire[128];
-		unsigned int nr_luni;
-		unsigned char esteElectronica;
+		char name[128];
+		unsigned int months;
+		unsigned char isElectronic;
 		char service[128];
 		char* token;
 		char delimiter[] = ",\n";
 		char buffer[128];
+
 		while (fgets(buffer, sizeof(buffer), pFile))
 		{
 			token = strtok(buffer, delimiter);
-			strcpy(denumire, token);
+			strcpy(name, token);
+
 			token = strtok(NULL, delimiter);
-			nr_luni = atoi(token);
+			months = (unsigned int)atoi(token);
+
 			token = strtok(NULL, delimiter);
-			esteElectronica = atoi(token);
+			isElectronic = (unsigned char)atoi(token);
+
 			token = strtok(NULL, delimiter);
 			strcpy(service, token);
-			GarantieInfo* garantie = createGarantie(denumire, nr_luni, esteElectronica, service);
-			populateHT(&HT, garantie);
+
+			WarrantyInfo* warranty = createWarranty(name, months, isElectronic, service);
+			populateHT(&HT, warranty);
 		}
-		//.2
-		int nrGarantii = searchForNumberOfGarantiiOnSpecifiedService(HT, "SecureGuard Insurance");
-		printf("Numar garantii : %d\n", nrGarantii);
 
-		//.3
-		//printf("Inainte:\n\n");
-		//printHT(HT);
-		extindereGarantii(&HT, 7);
-		//printf("Dupa:\n\n");
-		//printHT(HT);
+		{
+			int nrWarranties = searchForNumberOfWarrantiesOnService(HT, "SecureGuard Insurance");
+			printf("Number of warranties: %d\n", nrWarranties);
+		}
 
-		//.4
+		{
+			extendWarranties(&HT, 7);
+		}
+
+		{
+			printHT(HT);
+			printf("After modifying service:\n\n");
+			modifyService(&HT, "TurboSpark Electric Blender", "SecureGuard Insurance");
+			printHT(HT);
+		}
+
+		/*
+		doubleList = convertHTToDoubleLinkedList(HT, 20);
+		displayDoubleLinkedList(doubleList);
 		printHT(HT);
-		printf("Dupa modificare service:\n\n");
-		modificareService(&HT, "TurboSpark Electric Blender", "SecureGuard Insurance");
-		printHT(HT);
-
-		//.5
-		/*listaDubla = convertHTToDoubleLinkedList(HT, 20);
-		displayDoubleLinkedList(listaDubla);
-		printHT(HT);*/
+		*/
 	}
+	return 0;
 }
-GarantieInfo* createGarantie(char* denumire,unsigned int nr_luni,unsigned char esteElectronica, char* service)
+
+WarrantyInfo* createWarranty(char* name, unsigned int months, unsigned char isElectronic, char* service)
 {
-	GarantieInfo* garantie = (GarantieInfo*)malloc(sizeof(GarantieInfo));
-	garantie->denumire = (char*)malloc(strlen(denumire) + 1);
-	garantie->service = (char*)malloc(strlen(service) + 1);
-	strcpy(garantie->denumire, denumire);
-	strcpy(garantie->service, service);
-	garantie->esteElectronica = esteElectronica;
-	garantie->nr_luni = nr_luni;
-	return garantie;
+	WarrantyInfo* warranty = (WarrantyInfo*)malloc(sizeof(WarrantyInfo));
+	warranty->name = (char*)malloc(strlen(name) + 1);
+	warranty->service = (char*)malloc(strlen(service) + 1);
+
+	strcpy(warranty->name, name);
+	strcpy(warranty->service, service);
+	warranty->isElectronic = isElectronic;
+	warranty->months = months;
+	return warranty;
 }
-void populateHT(HashTable* HT, GarantieInfo* garantie)
+
+void populateHT(HashTable* HT, WarrantyInfo* warranty)
 {
 	if (HT->buckets == NULL)
 	{
@@ -123,21 +138,24 @@ void populateHT(HashTable* HT, GarantieInfo* garantie)
 		memset(HT->buckets, 0, sizeof(StructNode*) * HT_INITIAL_SIZE);
 		HT->size = HT_INITIAL_SIZE;
 	}
-	StructNode* node = createNode(garantie);
+	StructNode* node = createNode(warranty);
 	int key = hashFunction(node->info->service, HT->size);
 	putNode(&(HT->buckets[key]), node);
 }
-StructNode* createNode(GarantieInfo* garantie)
+
+StructNode* createNode(WarrantyInfo* warranty)
 {
 	StructNode* node = (StructNode*)malloc(sizeof(StructNode));
-	node->info = garantie;
+	node->info = warranty;
 	node->next = NULL;
 	return node;
 }
+
 int hashFunction(char* service, int size)
 {
 	return service[0] % size;
 }
+
 void putNode(StructNode** bucket, StructNode* node)
 {
 	if (*bucket == NULL)
@@ -152,22 +170,28 @@ void putNode(StructNode** bucket, StructNode* node)
 		*bucket = node;
 	}
 }
-int searchForNumberOfGarantiiOnSpecifiedService(HashTable HT, char* service)
+
+int searchForNumberOfWarrantiesOnService(HashTable HT, char* service)
 {
-	int nrGarantii = 0;
+	int count = 0;
 	int key = hashFunction(service, HT.size);
 	StructNode* aux = HT.buckets[key];
-	do
+
+	if (aux)
 	{
-		if (strcmp(aux->info->service, service)==0)
+		do
 		{
-			nrGarantii++;
-		}
-		aux = aux->next;
-	} while (aux != HT.buckets[key]);
-	return nrGarantii;
+			if (strcmp(aux->info->service, service) == 0)
+			{
+				count++;
+			}
+			aux = aux->next;
+		} while (aux != HT.buckets[key]);
+	}
+	return count;
 }
-void extindereGarantii(HashTable* HT, int luniAdaos)
+
+void extendWarranties(HashTable* HT, int addedMonths)
 {
 	for (int i = 0; i < HT->size; i++)
 	{
@@ -176,20 +200,21 @@ void extindereGarantii(HashTable* HT, int luniAdaos)
 			StructNode* aux = HT->buckets[i];
 			do
 			{
-				if (aux->info->esteElectronica == 1)
+				if (aux->info->isElectronic == 1)
 				{
-					aux->info->nr_luni += luniAdaos;
+					aux->info->months += addedMonths;
 				}
 				aux = aux->next;
 			} while (aux != HT->buckets[i]);
 		}
 	}
 }
+
 void printHT(HashTable HT)
 {
 	if (HT.buckets)
 	{
-		printf("HashTable\n\n");
+		printf("Hash Table:\n\n");
 		for (int i = 0; i < HT.size; i++)
 		{
 			if (HT.buckets[i])
@@ -197,30 +222,37 @@ void printHT(HashTable HT)
 				StructNode* aux = HT.buckets[i];
 				do
 				{
-					displayGarantie(aux->info);
+					displayWarranty(aux->info);
 					aux = aux->next;
 				} while (aux != HT.buckets[i]);
 			}
 		}
 	}
 }
-void displayGarantie(GarantieInfo* garantie)
+
+void displayWarranty(WarrantyInfo* warranty)
 {
-	if (garantie)
+	if (warranty)
 	{
-		printf("%s -> %d -> %d -> %s\n", garantie->denumire, garantie->nr_luni, garantie->esteElectronica, garantie->service);
+		printf("%s -> %d -> %d -> %s\n",
+		       warranty->name,
+		       warranty->months,
+		       warranty->isElectronic,
+		       warranty->service);
 	}
 }
-DoubleLinkedList* createDoubleLinkedListNode(GarantieInfo* garantie)
+
+DoubleLinkedList* createDoubleLinkedListNode(WarrantyInfo* warranty)
 {
 	DoubleLinkedList* node = (DoubleLinkedList*)malloc(sizeof(DoubleLinkedList));
-	node->info = garantie;
+	node->info = warranty;
 	node->next = node->prev = NULL;
 	return node;
 }
-DoubleLinkedList* convertHTToDoubleLinkedList(HashTable HT, int prag)
+
+DoubleLinkedList* convertHTToDoubleLinkedList(HashTable HT, int limit)
 {
-	DoubleLinkedList* listaDubla = NULL;
+	DoubleLinkedList* list = NULL;
 	for (int i = 0; i < HT.size; i++)
 	{
 		if (HT.buckets[i])
@@ -228,87 +260,97 @@ DoubleLinkedList* convertHTToDoubleLinkedList(HashTable HT, int prag)
 			StructNode* aux = HT.buckets[i];
 			do
 			{
-				if (aux->info->nr_luni < prag)
+				if (aux->info->months < limit)
 				{
-					listaDubla = insertNodeIntoDoubleLinkedList(listaDubla, createDoubleLinkedListNode(createGarantie(aux->info->denumire, aux->info->nr_luni, aux->info->esteElectronica, aux->info->service)));
+					WarrantyInfo* copy = createWarranty(
+						aux->info->name,
+						aux->info->months,
+						aux->info->isElectronic,
+						aux->info->service
+					);
+					list = insertNodeIntoDoubleLinkedList(list, createDoubleLinkedListNode(copy));
 				}
 				aux = aux->next;
 			} while (aux != HT.buckets[i]);
 		}
 	}
-	return listaDubla;
+	return list;
 }
-DoubleLinkedList* insertNodeIntoDoubleLinkedList(DoubleLinkedList* listaDubla, DoubleLinkedList* node)
+
+DoubleLinkedList* insertNodeIntoDoubleLinkedList(DoubleLinkedList* list, DoubleLinkedList* node)
 {
-	if (listaDubla == NULL)
+	if (list == NULL)
 	{
 		node->next = node->prev = node;
 	}
 	else
 	{
-		node->next = listaDubla;
-		node->prev = listaDubla->prev;
-		listaDubla->prev= node;
-		node->prev->next = node;
+		node->next = list;
+		node->prev = list->prev;
+		list->prev->next = node;
+		list->prev = node;
 	}
 	return node;
 }
-void displayDoubleLinkedList(DoubleLinkedList* lista)
+
+void displayDoubleLinkedList(DoubleLinkedList* list)
 {
-	if (lista)
+	if (list)
 	{
-		printf("Lista dublu inlantuita:\n\n");
-		DoubleLinkedList* aux = lista;
+		printf("Double linked list:\n\n");
+		DoubleLinkedList* aux = list;
 		do
 		{
-			displayGarantie(aux->info);
+			displayWarranty(aux->info);
 			aux = aux->next;
-		} while (aux != lista);
+		} while (aux != list);
 	}
 }
-void modificareService(HashTable* HT, char* denumire, char* serviceNou)
+
+void modifyService(HashTable* HT, char* name, char* newService)
 {
 	if (HT->buckets)
 	{
 		for (int i = 0; i < HT->size; i++)
 		{
-			if (HT->buckets[i]) {
+			if (HT->buckets[i])
+			{
 				StructNode* aux = HT->buckets[i];
-				int a = 1;
+				int cmpResult = 1;
 				do
 				{
-					if ((a = strcmp(aux->info->denumire, denumire)) == 0)
+					if ((cmpResult = strcmp(aux->info->name, name)) == 0)
 					{
-						int hash = hashFunction(serviceNou, HT->size);
-						dezlipireDeStructura(&HT->buckets[i], aux);
-						//----------------------------------------------------------
+						int newHash = hashFunction(newService, HT->size);
+						detachStructure(&HT->buckets[i], aux);
 						free(aux->info->service);
-						aux->info->service = (char*)malloc(strlen(serviceNou) + 1);
-						strcpy(aux->info->service, serviceNou);
-						//----------------------------------------------------------
-						moveNode(&(HT->buckets[hash]), aux);
+						aux->info->service = (char*)malloc(strlen(newService) + 1);
+						strcpy(aux->info->service, newService);
+						moveNode(&(HT->buckets[newHash]), aux);
 					}
 					aux = aux->next;
-				} while (aux != HT->buckets[i] && a != 0);
+				} while (aux != HT->buckets[i] && cmpResult != 0);
 			}
-		}	
+		}
 	}
 }
-void moveNode(StructNode** bucket, StructNode* garantie)
+
+void moveNode(StructNode** bucket, StructNode* warranty)
 {
 	if (*bucket == NULL)
 	{
-		garantie->next = garantie;
-		*bucket = garantie;
+		warranty->next = warranty;
+		*bucket = warranty;
 	}
 	else
 	{
-		garantie->next = (*bucket)->next;
-		(*bucket)->next = garantie;
+		warranty->next = (*bucket)->next;
+		(*bucket)->next = warranty;
 	}
-	*bucket = garantie;
+	*bucket = warranty;
 }
-void dezlipireDeStructura(StructNode** bucket, StructNode* node)
+
+void detachStructure(StructNode** bucket, StructNode* node)
 {
 	if (*bucket == (*bucket)->next)
 	{
@@ -321,7 +363,8 @@ void dezlipireDeStructura(StructNode** bucket, StructNode* node)
 		{
 			prev = prev->next;
 		} while (prev->next != *bucket);
-		while (strcmp((*bucket)->info->denumire, node->info->denumire) != 0)
+
+		while (strcmp((*bucket)->info->name, node->info->name) != 0)
 		{
 			*bucket = (*bucket)->next;
 			prev = prev->next;
