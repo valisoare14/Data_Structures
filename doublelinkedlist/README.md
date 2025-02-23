@@ -1,18 +1,18 @@
-# Sistem de Gestionare a Rezervărilor de Vagoane de Tren
+# Train Wagon Reservation Management System
 
-În acest fișier C, se implementează un sistem de gestionare a rezervărilor de vagoane de tren, folosind o structură de date care combină o listă dublu înlănțuită și o coadă de priorități (priority queue).
+This C program implements a **train wagon reservation management system**, using a data structure that combines a **doubly linked list** and a **priority queue**.
 
-## Afișare lista dublu înlănțuită:
-- Se afișează lista de la cap la coadă și invers, prezentând detalii despre fiecare vagon, cum ar fi numărul vagonului, firma, numărul de bilete vândute și capacitatea.
+## Displaying the Doubly Linked List:
+- The list is displayed **from head to tail and vice versa**, showing details about each wagon, such as **wagon number, company, number of tickets sold, and capacity**.
 
-## Ștergere vagon cu numărul minim de bilete vândute:
-- Se elimină din listă vagonul cu cel mai mic număr de bilete vândute.
+## Deleting the Wagon with the Fewest Tickets Sold:
+- The wagon with the **smallest number of tickets sold** is removed from the list.
 
-## Convertirea listei în coadă de priorități:
-- Se transformă lista dublu înlănțuită într-o coadă de priorități, unde ordinea elementelor este determinată de un criteriu specific, precum numărul de bilete vândute sau un grad de ocupare.
+## Converting the List into a Priority Queue:
+- The **doubly linked list** is converted into a **priority queue**, where the order of elements is determined by a specific criterion, such as **the number of tickets sold or occupancy rate**.
 
-## Modificare număr de bilete și afișare coadă de priorități:
-- Se schimbă numărul de bilete vândute pentru un vagon specific și se afișează coada actualizată, care reflectă noua ordine de priorități.
+## Modifying the Number of Tickets and Displaying the Priority Queue:
+- The **number of tickets sold** for a specific wagon is updated, and the **updated queue** is displayed, reflecting the new priority order.
 
-## Dequeue (extragere) și afișare vagon extras:
-- Se extrage vagonul cu cea mai mare prioritate din coadă (cel cu cel mai mic număr de bilete vândute sau cel mai mare grad de ocupare) și se afișează informațiile acestuia, urmate de afișarea cozii de priorități rămase după extragere.
+## Dequeue (Extraction) and Displaying the Extracted Wagon:
+- The wagon with the **highest priority** (the one with the **fewest tickets sold** or the **highest occupancy rate**) is extracted from the queue, its details are displayed, followed by the **remaining priority queue** after extraction.
