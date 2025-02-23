@@ -1,21 +1,21 @@
-# Implementarea unui Arbore Binar de Căutare (BST) Echilibrat
+# Implementation of a Balanced Binary Search Tree (BST)
 
-Codul C prezentat implementează un arbore binar de căutare (BST) echilibrat pentru gestionarea unor structuri de date care reprezintă depozite, având informații precum denumire, locație, număr de angajați, salarii și vechime. La punctele marcate în funcția main, se realizează următoarele operații:
+The presented C code implements a balanced binary search tree (BST) for managing data structures representing warehouses, containing information such as name, location, number of employees, salaries, and seniority. At the marked points in the `main` function, the following operations are performed:
 
-## Crearea și Inserarea în BST:
-- Se citește dintr-un fișier și se creează structuri `DepozitInfo` care sunt apoi inserate în arborele binar de căutare.
+## Creating and Inserting into the BST:
+- Data is read from a file, and `DepozitInfo` structures are created and then inserted into the binary search tree.
 
-## Vectorul de Depozite de la un Anumit Nivel:
-- Se construiește un vector care conține toate depozitele de la un anumit nivel al arborelui (nivelul 2 în exemplul dat) și se afișează acest vector.
+## Warehouse Vector at a Specific Level:
+- A vector is constructed containing all warehouses at a specific level of the tree (level 2 in the given example) and displayed.
 
-## Vectorul Drumului pentru un Depozit Specific:
-- Se generează și se afișează un vector care conține toate nodurile (depozitele) de pe calea către un nod cu o anumită cheie (în acest caz, un anumit număr de angajați).
+## Path Vector for a Specific Warehouse:
+- A vector is generated and displayed containing all nodes (warehouses) on the path to a node with a specific key (in this case, a certain number of employees).
 
-## Ștergerea Nodurilor-Frunză:
-- Se sterg toate nodurile frunză din arbore.
+## Deleting Leaf Nodes:
+- All leaf nodes in the tree are deleted.
 
-## Dezalocarea Memoriei:
-- Se eliberează toată memoria alocată pentru structurile de date din program, inclusiv arborele și vectorii creați.
+## Memory Deallocation:
+- All allocated memory for the data structures in the program, including the tree and created vectors, is freed.
 
-## Afisare După Dezalocare:
-- Se afiseaza structurile dupa dezalocare pentru verificare.
+## Display After Deallocation:
+- The structures are displayed after deallocation for verification.
