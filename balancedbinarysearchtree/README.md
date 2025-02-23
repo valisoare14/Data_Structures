@@ -3,7 +3,7 @@
 The presented C code implements a balanced binary search tree (BST) for managing data structures representing warehouses, containing information such as name, location, number of employees, salaries, and seniority. At the marked points in the `main` function, the following operations are performed:
 
 ## Creating and Inserting into the BST:
-- Data is read from a file, and `DepozitInfo` structures are created and then inserted into the binary search tree.
+- Data is read from a file, and `DepositInfo` structures are created and then inserted into the binary search tree.
 
 ## Warehouse Vector at a Specific Level:
 - A vector is constructed containing all warehouses at a specific level of the tree (level 2 in the given example) and displayed.
