@@ -1,27 +1,26 @@
-# Manipularea Structurii de Date pentru Garanții de Produse
+# Manipulating a Data Structure for Product Warranties
 
-Codul C furnizat definește structuri și funcții pentru manipularea unei structuri de date de tip tabel de dispersie (hash table) care gestionează informații despre garanții de produse, precum și pentru conversia acestuia într-o listă dublu înlănțuită. În funcția main, se efectuează mai multe operațiuni, pe care le-am identificat cu comentariile de la punctele .1 până la .5:
+The provided C code defines **structures and functions** for manipulating a **hash table** data structure that manages product warranty information. It also includes **conversion to a doubly linked list**. In the `main` function, several operations are performed, marked with comments at points **.1 to .5**:
 
-1. **Încărcarea datelor în tabelul de dispersie:**
-   - Se deschide un fișier text (Data.txt).
-   - Pentru fiecare linie citită din acesta, se extrag detaliile garantiei.
-   - Se creează o structură GarantieInfo.
-   - Se populează tabelul de dispersie folosind aceste structuri de garantii.
+1. **Loading Data into the Hash Table:**
+   - A **text file (Data.txt)** is opened.
+   - For each line read from the file, **warranty details** are extracted.
+   - A **GarantieInfo** structure is created.
+   - The **hash table** is populated using these warranty structures.
 
-2. **Căutarea în tabelul de dispersie:**
-   - Se caută numărul de garanții asociate cu un anumit serviciu ("SecureGuard Insurance").
-   - Se afișează acest număr.
+2. **Searching the Hash Table:**
+   - The number of **warranties associated with a specific service** (e.g., **"SecureGuard Insurance"**) is searched.
+   - The **count is displayed**.
 
-3. **Extinderea Garanțiilor:**
-   - Se parcurge tabelul hash.
-   - Pentru fiecare garanție electronică (câmpul `esteElectronica` este adevărat/1), se extinde numărul de luni de garanție cu o valoare specificată (în acest caz, 7 luni).
+3. **Extending Warranties:**
+   - The **hash table is traversed**.
+   - For each **electronic warranty** (where the field `esteElectronica` is **true/1**), the **warranty duration** is extended by a specified value (**7 months** in this case).
 
-4. **Modificarea Serviciului pentru o Garanție:**
-   - Se schimbă numele serviciului pentru o anumită garanție.
-   - Acest lucru presupune actualizarea informației din structura.
-   - Posibil mutarea nodului în alt bucket dacă valoarea hash a noului serviciu diferă.
+4. **Modifying the Service for a Warranty:**
+   - The **service name** for a specific warranty is changed.
+   - This involves **updating the structure information**.
+   - If the **hash value of the new service** is different, the **node may need to be moved to another bucket**.
 
-5. **Conversia Tabelului Hash în Listă Dublu Înlănțuită:**
-   - Se convertește tabelul hash într-o listă dublu înlănțuită.
-   - Se adaugă în listă doar garanțiile care au un număr de luni mai mic decât un prag specificat (în acest caz, 20 de luni).
-
+5. **Converting the Hash Table to a Doubly Linked List:**
+   - The **hash table is converted** into a **doubly linked list**.
+   - Only **warranties with a duration below a specified threshold** (**20 months** in this case) are added to the list.
